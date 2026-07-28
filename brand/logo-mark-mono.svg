@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" fill="none" role="img" aria-label="Job Tracker">
+  <rect width="88" height="88" rx="22" fill="#1F2A24"/>
+  <path d="M26 58 C26 58 28 34 44 28 C60 22 62 40 62 40" stroke="#F4F1EC" stroke-width="5.5" stroke-linecap="round"/>
+  <circle cx="26" cy="58" r="5.5" fill="#F4F1EC"/>
+  <circle cx="44" cy="28" r="5.5" fill="#F4F1EC"/>
+  <circle cx="62" cy="40" r="7.5" fill="#F4F1EC"/>
+  <circle cx="62" cy="40" r="3.2" fill="#1F2A24"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 88" fill="none" role="img" aria-label="Job Tracker">
+  <rect width="88" height="88" rx="22" fill="#1F2A24"/>
+  <path d="M26 58 C26 58 28 34 44 28 C60 22 62 40 62 40" stroke="#C8D5C3" stroke-width="5.5" stroke-linecap="round"/>
+  <circle cx="26" cy="58" r="5.5" fill="#8FAE8B"/>
+  <circle cx="44" cy="28" r="5.5" fill="#8FAE8B"/>
+  <circle cx="62" cy="40" r="7.5" fill="#E8F0E4"/>
+  <circle cx="62" cy="40" r="3.2" fill="#1F2A24"/>
+  <text x="108" y="54" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="36" font-weight="600" letter-spacing="-0.03em" fill="#1F2A24">Job Tracker</text>
+</svg>
