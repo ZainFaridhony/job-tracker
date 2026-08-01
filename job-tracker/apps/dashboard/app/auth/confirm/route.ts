@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerSupabase, type EmailOtpType } from '@job-tracker/db/server'
 import { noStore } from '@job-tracker/db/proxy'
 import { safeNext } from '@/lib/validation'
+import { requestOrigin } from '@/lib/origin'
 import { RECOVERY_COOKIE, recoveryCookieOptions } from '@/lib/auth-cookies'
 
 /**
@@ -12,7 +13,10 @@ import { RECOVERY_COOKIE, recoveryCookieOptions } from '@/lib/auth-cookies'
  * — fails here. Keeping the two handlers apart is deliberate.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
+  // Not new URL(request.url).origin: Next normalises 127.0.0.1 to localhost in
+  // dev, which would bounce the user across a cookie boundary mid-flow.
+  const origin = await requestOrigin()
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
   const next = safeNext(searchParams.get('next'))

@@ -2,10 +2,14 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerSupabase } from '@job-tracker/db/server'
 import { noStore } from '@job-tracker/db/proxy'
 import { safeNext } from '@/lib/validation'
+import { requestOrigin } from '@/lib/origin'
 
 /** OAuth only. Email links use ?token_hash and are handled by /auth/confirm. */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
+  // Not new URL(request.url).origin: Next normalises 127.0.0.1 to localhost in
+  // dev, which would bounce the user across a cookie boundary mid-flow.
+  const origin = await requestOrigin()
   const code = searchParams.get('code')
   const next = safeNext(searchParams.get('next'))
 

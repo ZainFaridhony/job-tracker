@@ -5,12 +5,11 @@ import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@job-tracker/db/server'
 import { isPlausibleEmail, safeNext, validateNewPassword, validateSignUp } from '../validation'
 import { RECOVERY_COOKIE } from '../auth-cookies'
+import { requestOrigin } from '../origin'
 
 export type AuthState = { error?: string }
 
-function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://127.0.0.1:3001'
-}
+
 
 export async function signUpAction(_prev: AuthState, form: FormData): Promise<AuthState> {
   const input = {
@@ -29,7 +28,7 @@ export async function signUpAction(_prev: AuthState, form: FormData): Promise<Au
     email: input.email,
     password: input.password,
     options: {
-      emailRedirectTo: `${siteUrl()}/auth/confirm`,
+      emailRedirectTo: `${await requestOrigin()}/auth/confirm`,
       data: { full_name: input.fullName.trim(), accepted_terms: 'true' },
     },
   })
@@ -83,7 +82,7 @@ export async function requestResetAction(_prev: AuthState, form: FormData): Prom
   // Recovery mail carries ?token_hash=&type=recovery, so it lands on
   // /auth/confirm — not /auth/callback, which only handles OAuth codes.
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl()}/auth/confirm?next=/reset-password`,
+    redirectTo: `${await requestOrigin()}/auth/confirm?next=/reset-password`,
   })
 
   // FR-46: unknown addresses get the same answer as known ones, and no mail.
@@ -132,7 +131,7 @@ export async function signInWithGoogleAction(): Promise<void> {
     provider: 'google',
     // PKCE: Google returns ?code=, which /auth/callback exchanges. Email links
     // use ?token_hash and go to /auth/confirm instead.
-    options: { redirectTo: `${siteUrl()}/auth/callback` },
+    options: { redirectTo: `${await requestOrigin()}/auth/callback` },
   })
 
   if (error || !data.url) redirect('/auth/auth-code-error')
