@@ -6,7 +6,7 @@ Design tokens live in `docs/PRD.md` Appendix A. This file covers the mark itself
 
 | File | Use |
 |---|---|
-| `logo-mark.svg` | **Primary.** `fill="currentColor"` — inherits colour from CSS. Use this in code. |
+| `logo-mark.svg` | **Primary.** Silhouette in `currentColor` plus the two fold facets. Flat-filled the mark collapses into a solid bookmark; the crease is what makes it read as an R. |
 | `logo-mark-ink.svg` | Standalone `#1E1E1E`. Documents, email, anywhere CSS can't reach. |
 | `logo-mark-reverse.svg` | Standalone white, for dark grounds. |
 | `favicon.svg` | 1024² square, mark at 75% height, optically centred. |
@@ -50,8 +50,8 @@ notch at 45°, which is why that vertex is the mark's structural centre.
 
 **Clear space:** at least 20% of the mark's height on every side. Nothing sits inside it.
 
-**Minimum size:** 24px tall. Below that the raster's fold gradient turns to mud — use the
-flat SVG, which is why the flat variant is the primary asset rather than an afterthought.
+**Minimum size:** 24px tall. Below that the fold turns to mud — use `logo-mark-ink.svg`,
+which is the flat single-tone variant.
 
 **Colour:** `ink` `#1E1E1E` on light grounds, white on `surface-inverse`. Never any other
 colour — the mark is one ink on one ground, and the palette takes its cue from that (PRD §9).
