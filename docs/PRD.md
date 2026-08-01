@@ -254,7 +254,9 @@ Type is **Geist** throughout, retained from `DESIGN.md`; its geometric construct
 
 This replaces the sage/canvas/ink palette of the original draft. The four SVGs in `brand/` belong to that superseded identity and remain only as history.
 
-**Asset gap.** The only master is a 1254px PNG carrying compression noise — 2,761 distinct colours for a two-colour mark. Before launch the mark needs redrawing as SVG, plus a flat single-tone variant for small sizes, a lockup with the wordmark set in Geist, and a favicon. Not blocking Phase 0.9, which can ship from the PNG.
+**Assets.** The mark has been traced to SVG from the raster and verified at **IoU 0.9932** against an independent WebKit render; geometry and provenance are in `brand/README.md`. `brand/` now holds the flat mark in three forms (`currentColor`, ink, reversed), an SVG favicon, and the raster master. The superseded sage assets moved to `brand/archive/`.
+
+Two gaps remain, neither blocking Phase 0.9: a **wordmark lockup**, which needs "Job Tracker AI" set in Geist and converted to outlines — fabricating those glyphs would produce something that is not Geist; and **raster favicon fallbacks** for older browsers. A two-tone vector carrying the fold should come from the original design source rather than from tracing a lossy raster: `logo.png` holds 2,761 distinct colours for what is a two-colour mark.
 
 **Accessibility note (NFR-8).** `DESIGN.md`'s hairline borders (`#c4c7c7` on white, ~1.9:1) fail WCAG 1.4.11, which requires 3:1 for the boundary of a user-interface component. Appendix A therefore separates two tokens: `outline` `#8A8A8A` (3.1:1) for input borders and anything focusable, and `outline-subtle` `#E4E4E4` for purely decorative dividers, where no contrast minimum applies. The visual difference is small; the compliance difference is not. Reverting to a uniform hairline is a one-token change if the lighter look is preferred, and is then a knowing tradeoff rather than an oversight.
 
@@ -470,9 +472,11 @@ Cards sit on a 1px `outline-subtle` border with a wide diffuse shadow. No inner 
 
 ### Logo usage
 
-Clear space on all sides equal to the width of the mark's upper block. Minimum size 24px, below which the flat single-tone variant is used — the fold gradient muddies at small scale. The mark appears in `ink` on light grounds and reversed to `surface` on `surface-inverse`. It is never recoloured, outlined, rotated, or stretched.
+Clear space on all sides is at least **20% of the mark's height**; nothing sits inside it. Minimum size **24px tall** — below that use the flat SVG rather than the raster, whose fold gradient turns to mud at small scale.
 
-**Assets still required** (see §9): SVG master, flat mono variant, wordmark lockup in Geist, favicon set.
+The mark appears in `ink` on light grounds and reversed to white on `surface-inverse`. It is never recoloured, outlined, rotated, stretched, or given a shadow, and the raster's gradient is never applied to the SVG — the gradient belongs to the logo, not the interface.
+
+The outline is one closed path over seven vertices on a `0 0 556 766` viewBox; every edge is vertical, horizontal, or exactly 45° except the leg's inner edge. Both fold creases radiate from the inner notch, which makes that vertex the mark's structural centre. Full geometry, corner radii, and usage rules: `brand/README.md`.
 
 ## Appendix B — Model reference
 

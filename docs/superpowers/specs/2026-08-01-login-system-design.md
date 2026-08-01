@@ -234,7 +234,9 @@ A screen that renders `#000000`, or an input bordered with `outline-subtle`, is 
 
 `AuthShell` collapses to a single column on mobile, dropping the left panel. Geist loads through `next/font` in each app's root layout.
 
-**Logo asset.** Phase 0.9 ships the existing PNG. It is a lossy master — 2,761 distinct colours for a two-colour mark — so `Logo` takes a `variant` prop from the start (`gradient` | `flat`), letting the SVG replace the PNG later without touching a single consumer. Below 24px the flat variant is used; the fold muddies at small scale.
+**Logo asset.** `brand/logo-mark.svg` is the primary asset — a verified trace of the raster (IoU 0.9932), filled with `currentColor` so a single component covers light and dark grounds by inheriting colour rather than switching files. `Logo` renders it inline, so it takes `fill` from CSS and needs no `variant` prop. The raster master stays in `brand/` for any future large hero use; nothing in Phase 0.9 loads it.
+
+No wordmark lockup exists yet (it needs Geist converted to outlines), so auth screens use the mark alone — which is what the reference designs show anyway.
 
 ---
 
