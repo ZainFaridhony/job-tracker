@@ -1,12 +1,18 @@
-# Product Requirements Document — Job Tracker
+# Product Requirements Document — Job Tracker AI
 
 | Field | Value |
 |---|---|
-| **Product** | Job Tracker |
+| **Product** | Job Tracker AI |
 | **Author** | Zain |
-| **Date** | 2026-07-28 |
-| **Status** | Approved |
+| **Date** | 2026-07-28 · amended 2026-08-01 |
+| **Status** | v1 approved; amendment pending approval |
 | **Phase covered** | Phase 1 (v1.0). Phases 2–3 specified at summary level only. |
+
+> **Amendment — 2026-08-01.** Finished designs in `references/login_system/` specify email + password authentication, Google OAuth, and a public Create Account form with a terms checkbox. Those designs supersede the magic-link, invite-only model in the original draft.
+>
+> Changed here: **FR-1** rewritten · **FR-2** and **NG5** withdrawn · **FR-42–FR-46** and **NFR-11–NFR-13** added · **§4**, **§5 J1**, **§8 cost budget**, **§9**, **§13**, **§14**, **§15** revised · **Appendix A** replaced by the design system in `references/login_system/job_tracker_ai_design_system/DESIGN.md` · **Q1** resolved.
+>
+> Withdrawn IDs are retained rather than renumbered, so references from the implementation plans stay resolvable. Privacy rule **P6** and non-goals **NG1–NG4, NG6** are unchanged. The problem statement (§1) and success metrics (§2) are unchanged — M1 still wins any tradeoff.
 
 ---
 
@@ -45,21 +51,25 @@ Stated as hard product boundaries, not "later maybe":
 | NG2 | Search for, recommend, or feed jobs | The user always brings the URL. No job board, no daily digest, no scraping of listings at scale. |
 | NG3 | Read the user's email to auto-advance stages | Stage changes are manual. Avoids an OAuth mail scope over a mailbox full of unrelated PII. |
 | NG4 | Provide a resume design editor | No template gallery, no font pickers. Generated documents use one opinionated layout. |
-| NG5 | Support public self-serve signup | Invite-only. No billing, no abuse handling, no ToS surface. |
+| ~~NG5~~ | ~~Support public self-serve signup~~ | **Withdrawn 2026-08-01.** Signup is now public (FR-1). This deliberately takes on the ToS and abuse-handling surface the original boundary existed to avoid — see FR-44 and NFR-11. |
 | NG6 | Produce rejection post-mortems | Explicitly declined during scoping — speculative and demoralizing without real signal. |
 
 ## 4. Users
 
 **Primary — Zain.** Actively job searching, technically fluent, will tolerate rough edges but not slowness. Applies to a mix of LinkedIn, company career pages, Indonesian boards (Jobstreet, Glints, Kalibrr), and remote boards.
 
-**Secondary — 10–50 invited friends.** Varying technical fluency. Will not read documentation. Will abandon the product on a confusing first screen. Zain absorbs all AI cost, so per-user consumption must stay bounded by design, not by trust.
+**Secondary — anyone who signs up.** Varying technical fluency. Will not read documentation. Will abandon the product on a confusing first screen. Zain absorbs all AI cost, so per-user consumption must stay bounded **by enforced quota, not by trust** (NFR-11). The original draft could assume every user was personally known; it no longer can.
 
-**Access model:** invite-only. Access is granted by an allowlist of email addresses; there is no open signup form.
+**Access model:** public self-serve signup — email + password, or Google. Email verification is required before the dashboard is reachable (FR-43).
+
+**Operator — Zain.** Holds `profiles.role = 'admin'`, which grants the admin app: user list, signup volume, and aggregate AI token spend. Explicitly *not* granted: any user's CV content, job postings, or analyses (P6, FR-45).
 
 ## 5. Core user journeys
 
 **J1 — First run (must complete in under 3 minutes).**
-Receive invite → sign in via magic link → prompted to upload CV (dashboard is inaccessible until this completes) → CV uploads, text extracted → board appears with six default stages and an empty state pointing at one button: *+ Add job*.
+Land on the marketing site → *Create Account* → name, email, password, accept terms → verification email arrives → click through → prompted to upload CV (dashboard is inaccessible until this completes) → CV uploads, text extracted → board appears with six default stages and an empty state pointing at one button: *+ Add job*.
+*Alternate entry:* *Continue with Google* skips password creation and email verification, landing directly on the CV gate.
+*Returning user who forgot their password:* sign in → *Forgot password?* → recovery email → set a new password → dashboard (FR-42).
 
 **J2 — Log a job (the highest-frequency action; target <60s).**
 Click *+ Add job* → paste URL → system fetches and extracts company, title, location, work mode, salary, description, requirements → card appears in *Saved* → optionally run gap analysis.
@@ -82,10 +92,15 @@ Each requirement has acceptance criteria. `MUST` = Phase 1 blocking.
 
 | ID | Requirement | Acceptance criteria |
 |---|---|---|
-| FR-1 | MUST authenticate via Supabase Auth with email magic link | A valid allowlisted email receives a link; clicking it creates a session. A non-allowlisted email receives no link and sees a neutral "check your email" message (no account enumeration). |
-| FR-2 | MUST restrict access to an invite allowlist | An email not on the allowlist cannot obtain a session under any flow. |
+| FR-1 | MUST authenticate via Supabase Auth with email + password, and with Google OAuth | Valid credentials create a session. Google completes through a PKCE code exchange at `/auth/callback`. The Google button is hidden — not disabled — when the provider is unconfigured, leaving the layout intact. |
+| ~~FR-2~~ | ~~MUST restrict access to an invite allowlist~~ | **Withdrawn 2026-08-01** — signup is public. |
 | FR-3 | MUST isolate all user data at the database level | Row-level security on every table. An authenticated user issuing a direct query for another user's row receives zero rows. Covered by an automated test. |
 | FR-4 | MUST sign out and invalidate the session | Post-sign-out, protected routes redirect to sign-in. |
+| FR-42 | MUST support password reset by email | Request → recovery email → set new password → sign in with it. The recovery link is single-use and expires. The previous password stops working, verified by test. |
+| FR-43 | MUST require email verification before dashboard access | An unverified account cannot reach any dashboard route. Google accounts arrive already verified and skip this. |
+| FR-44 | MUST record terms acceptance at signup | Signup cannot complete without an explicit terms checkbox; `profiles.accepted_terms_at` is set. Terms of Service and Privacy Policy pages exist and are linked from every auth screen. |
+| FR-45 | MUST enforce the admin role in Postgres, not in application code | `profiles.role` gates admin access. A user attempting to change their own role is rejected by the database. The admin app holds no service-role key and cannot read CV, job, or analysis content (P6). |
+| FR-46 | MUST NOT reveal whether an email is registered | Signing up with an existing address, and requesting reset for an unknown address, both return the same neutral "check your email" response as the success case. |
 
 ### 6.2 CV gate
 
@@ -163,10 +178,11 @@ Phase 3 is deferred for a substantive reason, not convenience: pattern analysis 
 
 ## 7. Data model
 
-Every table carries `user_id uuid references auth.users`, with row-level security `using (auth.uid() = user_id)`.
+Every table except `profiles` carries `user_id uuid references auth.users`, with row-level security `using (auth.uid() = user_id)`. `profiles` keys on `id` directly.
 
 ```
-profiles    id → auth.users, full_name, onboarding_complete
+profiles    id → auth.users, full_name, role, accepted_terms_at,
+            onboarding_complete, created_at
 cvs         id, user_id, storage_path, file_name, extracted_text,
             is_primary, created_at
 stages      id, user_id, name, position, color, is_terminal
@@ -184,6 +200,9 @@ analyses    id, user_id, job_id, cv_id, kind, status, result jsonb, error,
 - `analyses.status`: `pending | complete | failed`
 - CV files in a private Supabase Storage bucket; access exclusively via signed URLs
 - `position` is a gap-spaced integer; fractional ordering is unnecessary at this scale
+- `profiles.role`: `user | admin`, defaulting to `user`. Not user-updatable — the column is withheld from the user's own update policy, so self-promotion fails at the database (FR-45)
+- `profiles` rows are created by a trigger on `auth.users` insert, taking `full_name` from signup metadata. No application code path can leave a user without a profile
+- Passwords are held solely by Supabase Auth in `auth.users`. No application table stores a password, hash, or reset token (P8)
 
 ## 8. AI requirements
 
@@ -203,7 +222,9 @@ analyses    id, user_id, job_id, cv_id, kind, status, result jsonb, error,
 2. **Persisted results.** AI never runs on render — only on explicit action.
 3. **Per-analysis token accounting** stored on the row and surfaced to the user.
 
-**Cost budget:** ~$0.05–0.10 per gap analysis. A user running 30 applications costs ~$3. Fifty users at that volume is ~$150 total — acceptable for an invite-only tool with no billing.
+**Cost budget — the denominator was invalidated on 2026-08-01.** The per-user figures still hold: ~$0.05–0.10 per gap analysis, ~$3 for a user running 30 applications. What no longer holds is "fifty users is ~$150 total" — that assumed a known, invited population. Public signup makes the total unbounded, and Zain still absorbs every dollar with no billing in place.
+
+**NFR-11 (per-user quota) is therefore blocking before any AI feature ships.** Phase 1 contains no AI calls, so nothing is at risk today; the exposure begins the moment gap analysis lands.
 
 **Behavioral requirement:** the model must not invent qualifications, employers, dates, or achievements not present in the CV, and must not assert requirements not present in the posting. Every gap cites source text (FR-33).
 
@@ -216,7 +237,11 @@ The brief was "simple and minimalist to operate but with hidden advanced feature
 - **Hidden layer, on deliberate gesture.** `⌘K` palette, keyboard navigation, table view, collapsed advanced panel.
 - **The rule:** a new user must never encounter a control they don't need. A returning power user must never need the mouse.
 
-**Visual identity** comes from the existing `brand/` assets — ink `#1F2A24`, canvas `#F4F1EC`, sage accent `#8FAE8B`, surface `#E8F0E4`. The logo's ascending-track motif carries into the stage progression indicator. Built with Tailwind and shadcn/ui, restyled to these tokens rather than left at library defaults.
+**Visual identity** (revised 2026-08-01) follows `references/login_system/job_tracker_ai_design_system/DESIGN.md` — "premium minimalist", the register of Linear and Raycast. Effectively monochrome: pure black `#000000` for primary actions, near-black `#1a1c1c` for text, off-white `#f9f9f9` page background, white `#ffffff` cards, `#c4c7c7` hairline outlines. Type is **Geist** throughout. Cards carry a wide diffuse shadow; inputs and buttons use a tighter radius than containers. Colour appears only in error states (`#ba1a1a`) — status is otherwise carried by weight and position, not hue.
+
+This replaces the sage/canvas/ink palette of the original draft. The `brand/` SVGs are superseded by the logo mark in the reference designs; they remain in the repo as history. Built with Tailwind and shadcn/ui, restyled to these tokens rather than left at library defaults.
+
+**Note on a contradiction inside `DESIGN.md`.** Its prose section names a different palette from its own frontmatter — prose says primary `#111111`, secondary text `#6B7280`, borders `#ECECEC`; frontmatter says `#000000`, `#444748`, `#c4c7c7`. The five rendered `screen.png` files and their HTML use the **frontmatter** values. The frontmatter is therefore authoritative (Appendix A), and the prose palette is disregarded. Building from the prose would produce screens that visibly differ from the approved designs.
 
 ## 10. Non-functional requirements
 
@@ -232,6 +257,9 @@ The brief was "simple and minimalist to operate but with hidden advanced feature
 | NFR-8 | Accessibility | Keyboard operable throughout; visible focus states; board columns reachable without a mouse. |
 | NFR-9 | Responsive | Usable on mobile: board scrolls horizontally, sheets go full-screen. |
 | NFR-10 | Observability | Token usage and cost queryable per user and per analysis. |
+| NFR-11 | Cost | **Blocking before any AI feature ships.** A per-user quota caps AI spend. Exceeding it blocks further analyses with a clear message rather than degrading silently or billing the operator. Added 2026-08-01 because public signup removed the invite gate that previously bounded cost. |
+| NFR-12 | Security | Any HTTP response that sets an auth cookie must carry `Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0`. `@supabase/ssr` supplies these headers to the middleware `setAll` handler; discarding them lets a CDN serve one user's session cookie to another. Verified by test. |
+| NFR-13 | Deliverability | Transactional email (verification, password recovery) goes through a dedicated SMTP provider, not Supabase's built-in sender, which is rate-limited to a few messages per hour and cannot support public signup. |
 
 ## 11. Privacy and data handling
 
@@ -246,8 +274,28 @@ This product stores CVs. A CV is dense PII — legal name, phone number, address
 | P5 | A user can delete their account, cascading to all CVs, jobs, activities, and analyses. |
 | P6 | No user's CV or job data is ever visible to another user, including the operator, through the application UI. |
 | P7 | No third-party analytics, session recording, or error-tracking service receives page content from authenticated routes. |
+| P8 | Credentials are held solely by Supabase Auth. No application table stores a password, hash, or reset token, and no password value is ever logged — including on failed sign-in. |
+| P9 | The Privacy Policy states plainly, before signup, that CV content is sent to Anthropic for extraction and analysis. This restates P2 for users who now arrive without a personal introduction from the operator. |
 
 ## 12. Error states and edge cases
+
+### 12.1 Authentication (added 2026-08-01)
+
+| Case | Required behavior |
+|---|---|
+| Wrong email or password | One neutral message — "Email or password is incorrect" — naming neither field. Never reveal which was wrong (FR-46). |
+| Signup with an already-registered address | Identical "check your email" response to the success case. No duplicate account, and the response time must not differ measurably (FR-46). |
+| Password reset for an unknown address | Identical "check your email" response to the success case. No email sent. |
+| Unverified account attempts sign-in | No session established. Route to check-email with a resend action (FR-43). |
+| Recovery link expired or already used | Neutral failure page with a path back to requesting a fresh link. Never a stack trace or raw provider error. |
+| Google sign-in cancelled by the user | Return to sign-in with no error banner. Cancelling is a choice, not a failure. |
+| OAuth callback arrives with no code, or exchange fails | Redirect to `/auth/auth-code-error` with a retry path. |
+| New password fails policy, or doesn't match confirmation | Inline field validation before submit; no round trip needed to learn this. |
+| Rate limit reached on signup or reset requests | Explicit message stating that too many attempts were made and to try again shortly — not a generic failure. |
+| Session expires mid-use | Next navigation redirects to sign-in, preserving the intended destination for after sign-in. |
+| Non-admin reaches any admin route | **404, not 403.** A non-admin must not learn the admin app exists (FR-45). |
+
+### 12.2 Jobs, CVs, and analysis
 
 | Case | Required behavior |
 |---|---|
@@ -265,28 +313,42 @@ This product stores CVs. A CV is dense PII — legal name, phone number, address
 
 ## 13. Technical architecture
 
+Revised 2026-08-01: three separately deployed applications in one Turborepo, replacing the single app of the original draft.
+
 ```
-Next.js 15 (App Router, TypeScript, RSC)
-  ├── Server Components   → Supabase Postgres (RLS)
-  ├── Server Actions      → mutations: stages, jobs, activities, ordering
-  └── Route Handlers      → AI pipeline (streaming), scraper
-                              ├── lib/scrape  fetch + readability extraction
-                              └── lib/ai      Anthropic SDK, claude-opus-5
+job-tracker/                    Turborepo · pnpm workspaces
+├── apps/
+│   ├── web/         landing · PUBLIC · ships no Supabase client at all
+│   ├── dashboard/   user app · auth screens, board, jobs, preferences
+│   └── admin/       admin app · own sign-in, Postgres-enforced role gate
+├── packages/
+│   ├── db/          Supabase clients (browser · server · middleware) + types
+│   ├── ai/          PURE model calls — no db, no request context
+│   ├── core/        domain logic; takes a client as a parameter
+│   ├── ui/          design system from DESIGN.md
+│   └── config/      shared tsconfig · eslint · tailwind preset
+└── supabase/        migrations · config.toml
 
-Supabase: Postgres + Auth (magic link) + Storage (private CV bucket)
-UI: Tailwind + shadcn/ui, restyled to brand tokens
+Next.js 16 (App Router, TypeScript, RSC) · React 19
+Supabase: Postgres + Auth (email+password, Google OAuth) + Storage (private CV bucket)
+Deployment: three Vercel projects, one repo; preview environments are staging
 ```
 
-`lib/ai/*` are pure functions — text in, validated object out. No database access, no request context. This keeps them independently testable with recorded fixtures and swappable behind a fake everywhere else.
+**Sessions are deliberately not shared across the three apps.** `web` needs no auth, so it ships zero Supabase code and stays fully cacheable. `dashboard` and `admin` each own a session cookie scoped to their own host; the landing page's "Sign in" is a plain link. Beyond being simpler, this is the only arrangement that works on Vercel previews — `*.vercel.app` is on the Public Suffix List, so browsers refuse cookies set on a shared parent domain there. Independent sessions make previews behave exactly like production.
 
-**Testing approach:** unit tests for schemas, scrape extraction (against saved HTML fixtures per source type), prompt-prefix stability (a caching regression guard), and ordering math. Integration tests for server actions against a local Supabase, including the cross-user RLS test. End-to-end coverage of the critical path: sign up → gated → upload CV → add job → analysis renders, plus the paste-fallback branch. No live model calls in CI; one manual smoke script hits the real API to catch drift.
+**Admin authorization lives in Postgres.** The admin app receives no service-role key; admin read access is granted by RLS policy evaluated against the caller's own `profiles.role`. P6 then holds structurally rather than by convention — the admin app cannot query content tables because the database refuses, not because the code declines to ask.
+
+`packages/ai/*` are pure functions — text in, validated object out. No database access, no request context. This keeps them independently testable with recorded fixtures and swappable behind a fake everywhere else.
+
+**Testing approach:** unit tests for schemas, scrape extraction (against saved HTML fixtures per source type), prompt-prefix stability (a caching regression guard), and ordering math. Integration tests for server actions against a local Supabase, including the cross-user RLS test and a privilege-escalation test proving a user cannot set their own `role` to `admin`. End-to-end coverage of the critical path: sign up → verify email → gated → upload CV → add job → analysis renders, plus the paste-fallback branch, the password-recovery round trip, and the admin gate returning 404 to a non-admin. No live model calls in CI; one manual smoke script hits the real API to catch drift.
 
 ## 14. Release plan
 
 | Phase | Contents | Exit criteria |
 |---|---|---|
-| **1.0** | FR-1 – FR-36 | Zain runs a real job search entirely in the tool for two weeks with no spreadsheet |
-| **1.1** | Invite the first 5 friends | Someone other than Zain completes J1 unaided, with no explanation from Zain |
+| **0.9** | Monorepo foundation + login system: FR-1, FR-3, FR-4, FR-42 – FR-46, NFR-12, NFR-13, P8, P9 | All three apps deploy to Vercel preview. Signup, email verification, Google sign-in, password recovery, sign-out, and the admin role gate all work on staging. No job tracking yet. |
+| **1.0** | FR-5 – FR-36 | Zain runs a real job search entirely in the tool for two weeks with no spreadsheet. **NFR-11 (per-user quota) must ship with the first AI feature, not after it.** |
+| **1.1** | Open to the first 5 outside users | Someone other than Zain completes J1 unaided, with no explanation from Zain |
 | **2.0** | FR-37 – FR-39 (documents) | A generated CV and cover letter are good enough to send without rewriting |
 | **3.0** | FR-40 – FR-41 (cross-job intelligence) | Requires ≥20 jobs in a real account; report surfaces at least one gap the user hadn't noticed |
 
@@ -300,27 +362,52 @@ UI: Tailwind + shadcn/ui, restyled to brand tokens
 | AI output feels generic and gets ignored (M5 collapses) | Medium | FR-33: every gap must cite posting text. Non-citing output is a defect, not a quality nit. |
 | Feature creep back toward the full five-subsystem vision | High — it's what makes this never ship | Phasing in §14 with concrete exit criteria; NG1–NG6 as hard boundaries |
 | Friends bounce on first run | Medium | J1 under 3 minutes is a requirement; 1.1 exit criterion is unaided completion by someone else |
+| **Public signup makes AI cost unbounded** (added 2026-08-01) | **High — the operator pays, with no billing and no cap** | NFR-11 is blocking before any AI feature ships. Phase 0.9 contains no AI calls, so the risk is scheduled, not live. Revisit whether billing is needed before 1.0 opens beyond a handful of users. |
+| Transactional email undeliverable at signup volume | High — three of five auth screens depend on it | NFR-13: dedicated SMTP provider from the start. Supabase's built-in sender caps at a few messages per hour and would fail on day one. |
+| Abuse of public signup (throwaway accounts, scripted registration) | Medium | Email verification gates dashboard access (FR-43); Supabase Auth rate limits stand in front of signup. Not fully mitigated — accepted for 0.9, revisit before 1.1. |
+| Auth cookies cached by a CDN and served to the wrong user | High — silent cross-user session leak | NFR-12: middleware must propagate the cache headers `@supabase/ssr` supplies. Asserted by test, because the failure is invisible in normal use. |
 
 ## 16. Open questions
 
-Neither blocks Phase 1 implementation:
-
-| # | Question | Needed by |
+| # | Question | Status |
 |---|---|---|
-| Q1 | Deployment target — Vercel, or the existing Coolify instance? | Before first deploy |
-| Q2 | Phase 2 document output format — PDF via render service, DOCX, or Markdown→PDF? | Phase 2 scoping |
+| ~~Q1~~ | ~~Deployment target — Vercel, or the existing Coolify instance?~~ | **Resolved 2026-08-01: Vercel.** Three projects, one repo; preview environments serve as staging. |
+| Q2 | Phase 2 document output format — PDF via render service, DOCX, or Markdown→PDF? | Open. Needed by Phase 2 scoping; does not block 0.9 or 1.0. |
+| Q3 | Does the product need billing before opening beyond a handful of users? | Open. Follows from withdrawing NG5 — NFR-11 caps cost but does not recover it. Needed before 1.1. |
+| Q4 | Separate production Supabase project, or Supabase branching? | Open. 0.9 uses the single existing project as staging. Needed before the first production deploy. |
 
-## Appendix A — Brand tokens
+## Appendix A — Design tokens
 
-From `brand/job-tracker-logo.svg`:
+Replaced 2026-08-01. Source of truth: the **frontmatter** of `references/login_system/job_tracker_ai_design_system/DESIGN.md`, cross-checked against the hex values actually rendered in the five reference screens. See the note in §9 on why the frontmatter wins over that file's prose.
+
+**Core palette**
 
 | Token | Hex | Use |
 |---|---|---|
-| Ink | `#1F2A24` | Text, primary surfaces, logo mark |
-| Canvas | `#F4F1EC` | Page background |
-| Sage | `#8FAE8B` | Accent, stage nodes |
-| Sage light | `#C8D5C3` | Track/rail, dividers |
-| Surface | `#E8F0E4` | Cards, raised surfaces |
+| `primary` | `#000000` | Primary buttons (Sign In, Create Account) |
+| `on-primary` | `#ffffff` | Text on primary |
+| `background` / `surface` | `#f9f9f9` | Page background |
+| `surface-container-lowest` | `#ffffff` | Cards, the auth panel |
+| `surface-container-low` | `#f3f3f4` | Input fields, subtle fills |
+| `surface-variant` | `#e2e2e2` | Dividers, skeleton blocks |
+| `on-surface` | `#1a1c1c` | Headings and body text |
+| `on-surface-variant` | `#444748` | Secondary text, helper copy, labels |
+| `outline` | `#747878` | Icons, placeholder text |
+| `outline-variant` | `#c4c7c7` | Hairline borders |
+| `inverse-surface` | `#2f3131` | Dark callouts (the "AI INSIGHT" chip) |
+| `error` | `#ba1a1a` | Error text and borders |
+| `error-container` / `on-error-container` | `#ffdad6` / `#93000a` | Error banner fill / text |
+| `secondary-container` | `#dce2f3` | The one non-monochrome accent; use sparingly |
+
+**Typography** — Geist throughout. Display 48px/700, tracking `-0.02em` · Headline-lg 32px/600, `-0.01em` · Headline-md 24px/600 · Body-lg 16px/400, line-height 1.6 · Body-md 14px/400 · Label-sm 12px/500, tracking `0.02em`. Display drops to 36px on mobile.
+
+**Radius** — `sm` 0.25rem · default 0.5rem · `md` 0.75rem · `lg` 1rem · `xl` 1.5rem · `full` 9999px. Large containers take `xl`; buttons and inputs take the default.
+
+**Spacing** — 1200px container max · 24px gutter · 16px mobile margin, 48px desktop · stack scale 8 / 16 / 32px on an 8px grid.
+
+**Grid** — 12 columns desktop, 8 tablet, 4 mobile.
+
+**Elevation** — cards sit on a 1px `outline-variant` border with a wide diffuse shadow. No inner shadows, no bevels; surfaces read flat and matte.
 
 ## Appendix B — Model reference
 
