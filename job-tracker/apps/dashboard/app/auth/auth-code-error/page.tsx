@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { AuthShell, Button, Card } from '@job-tracker/ui'
+import { ErrorReason } from './error-reason'
 
 export const metadata = { title: 'That link did not work · Job Tracker AI' }
 
@@ -15,6 +16,7 @@ export default function AuthCodeErrorPage() {
           Email links can only be used once, and they expire. Request a fresh one and it will
           work.
         </p>
+        <ErrorReason />
         <div className="mt-8 flex flex-col gap-3">
           <Link href="/forgot-password"><Button>Send a new link</Button></Link>
           <Link href="/sign-in"><Button variant="secondary">Back to sign in</Button></Link>
