@@ -7,9 +7,10 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 }
 
 const BASE =
-  'inline-flex h-12 w-full items-center justify-center rounded text-sm font-medium ' +
-  'transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 ' +
-  'focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-60'
+  'inline-flex h-12 w-full items-center justify-center gap-2 rounded text-sm font-medium ' +
+  'transition-[background-color,transform] duration-150 active:scale-[0.99] ' +
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ' +
+  'disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100'
 
 // The three ink tokens are the logo mark's three tonal facets, so the button's
 // states are the brand's own geometry rather than arbitrary tints of it.
@@ -26,6 +27,12 @@ export function Button({ variant = 'primary', pending, className, children, ...r
       aria-busy={pending ? 'true' : undefined}
       className={cn(BASE, VARIANT[variant], className)}
     >
+      {pending && (
+        <span
+          aria-hidden
+          className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+        />
+      )}
       {children}
     </button>
   )

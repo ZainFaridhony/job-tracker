@@ -52,6 +52,7 @@ export function Input({
           aria-describedby={error ? errorId : undefined}
           className={cn(
             'h-12 w-full rounded border bg-surface-subtle text-sm text-text',
+            'transition-[border-color,background-color] duration-150 hover:border-text-subtle',
             'placeholder:text-text-subtle focus:outline-2 focus:outline-offset-2 focus:outline-ink',
             icon ? 'pl-10 pr-3' : 'px-3',
             revealable && 'pr-16',

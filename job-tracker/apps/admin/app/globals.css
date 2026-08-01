@@ -18,3 +18,17 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
 }
+
+/* Honour the OS setting. Entrances become instant rather than absent, so
+   nothing that animates in is left invisible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
