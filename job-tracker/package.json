@@ -1,0 +1,20 @@
+{
+  "name": "job-tracker",
+  "private": true,
+  "packageManager": "pnpm@11.18.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "db:start": "pnpm dlx supabase@2.111.0 start",
+    "db:stop": "pnpm dlx supabase@2.111.0 stop",
+    "db:reset": "pnpm dlx supabase@2.111.0 db reset"
+  },
+  "devDependencies": {
+    "turbo": "2.10.8",
+    "typescript": "6.0.3"
+  }
+}
