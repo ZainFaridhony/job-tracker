@@ -1,0 +1,25 @@
+/**
+ * The mark, traced from brand/logo.png and verified at IoU 0.9932 against an
+ * independent WebKit render. The path is copied verbatim from
+ * brand/logo-mark.svg — re-verify against that file after any edit, because a
+ * wrong arc sweep flag produces a shape that still looks plausible in isolation.
+ *
+ * currentColor rather than a fixed fill, so one component covers light and dark
+ * grounds by inheriting from CSS.
+ */
+export function Logo({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 556 766"
+      role="img"
+      aria-label="Job Tracker AI"
+      className={className ?? 'h-8 w-auto text-ink'}
+    >
+      <title>Job Tracker AI</title>
+      <path
+        fill="currentColor"
+        d="M0 66A66 66 0 0 1 66 0L490 0A66 66 0 0 1 556 66L556 208.15A60 60 0 0 1 538.43 250.57L311.16 477.84A8 8 0 0 0 311.16 489.16L539.92 717.92A28 28 0 0 1 512.31 764.61L146.11 658.29A6 6 0 0 0 140.19 659.81L58.04 741.96A34 34 0 0 1 0 717.92L0 66Z"
+      />
+    </svg>
+  )
+}
