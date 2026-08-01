@@ -33,8 +33,18 @@ export function validateNewPassword(password: string, confirm: string): string |
   return null
 }
 
-/** Only ever redirect within this app. Blocks //evil.com and absolute URLs. */
+/**
+ * Only ever redirect within this app.
+ *
+ * Checking `startsWith('//')` on the raw value is not enough. The WHATWG URL
+ * parser strips tab, LF and CR before parsing and treats a backslash as a
+ * slash for special schemes, so `/\evil.com` and `/<tab>/evil.com` both slip
+ * past a naive check and then resolve to a different origin. Normalise first,
+ * and return the normalised value so the sanitised string is what gets used.
+ */
 export function safeNext(next: string | null | undefined, fallback = '/dashboard'): string {
   if (!next) return fallback
-  return next.startsWith('/') && !next.startsWith('//') ? next : fallback
+  const normalised = next.replace(/[\t\n\r]/g, '').replace(/\\/g, '/')
+  if (!normalised.startsWith('/') || normalised.startsWith('//')) return fallback
+  return normalised
 }
