@@ -415,7 +415,7 @@ Nothing in the interface uses `#000000`.
 |---|---|---|---|---|
 | `text` | `#1E1E1E` | Headings, body | 16.7:1 | 16.0:1 |
 | `text-muted` | `#5C5C5C` | Secondary copy, labels, helper text | 6.7:1 | 6.4:1 |
-| `text-subtle` | `#757575` | Placeholders, inactive icons | 4.6:1 | 4.4:1 |
+| `text-subtle` | `#6F6F6F` | Placeholders, inactive icons | 5.02:1 | 4.81:1 |
 | `text-on-ink` | `#FFFFFF` | Text on primary buttons | 16.7:1 | — |
 
 Every text token clears WCAG AA (4.5:1) on both white and canvas — including placeholders, which are commonly allowed to fail.

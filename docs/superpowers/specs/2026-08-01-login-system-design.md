@@ -197,7 +197,9 @@ Google sign-ups carry no `accepted_terms`, leaving `accepted_terms_at` null. The
 
 ## 5. Session handling
 
-One `middleware.ts` per authenticated app, sharing an implementation from `packages/db`.
+One `proxy.ts` per authenticated app, sharing an implementation from `packages/db`.
+
+**Next.js 16 renamed middleware.** The file is `proxy.ts` and the export is `proxy`, not `middleware`. A file named `middleware.ts` is ignored silently — no warning, no error, and every protected route open. This is the highest-risk single detail in the phase, so it is stated here, in the plan's global constraints, and at the implementation step.
 
 ```ts
 setAll(cookiesToSet, headers) {
