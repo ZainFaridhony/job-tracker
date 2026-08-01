@@ -237,11 +237,26 @@ The brief was "simple and minimalist to operate but with hidden advanced feature
 - **Hidden layer, on deliberate gesture.** `⌘K` palette, keyboard navigation, table view, collapsed advanced panel.
 - **The rule:** a new user must never encounter a control they don't need. A returning power user must never need the mouse.
 
-**Visual identity** (revised 2026-08-01) follows `references/login_system/job_tracker_ai_design_system/DESIGN.md` — "premium minimalist", the register of Linear and Raycast. Effectively monochrome: pure black `#000000` for primary actions, near-black `#1a1c1c` for text, off-white `#f9f9f9` page background, white `#ffffff` cards, `#c4c7c7` hairline outlines. Type is **Geist** throughout. Cards carry a wide diffuse shadow; inputs and buttons use a tighter radius than containers. Colour appears only in error states (`#ba1a1a`) — status is otherwise carried by weight and position, not hue.
+**Visual identity** (revised 2026-08-01) is derived from the logo mark at `references/brand/logo.png`, in the "premium minimalist" register of `DESIGN.md` — Linear, Raycast. The full token set is Appendix A.
 
-This replaces the sage/canvas/ink palette of the original draft. The `brand/` SVGs are superseded by the logo mark in the reference designs; they remain in the repo as history. Built with Tailwind and shadcn/ui, restyled to these tokens rather than left at library defaults.
+**The mark is the source, not a decoration applied afterwards.** It is a folded ribbon reading as an implied *R*, and the fold gives the mark three tonal facets — `#181818`, `#1E1E1E`, `#2A2A2A`. Those become the ink scale: the dominant `#1E1E1E` is primary, the deepest facet is the pressed state, the fold highlight is hover. Interaction states are the logo's own geometry rather than arbitrary tints of it.
 
-**Note on a contradiction inside `DESIGN.md`.** Its prose section names a different palette from its own frontmatter — prose says primary `#111111`, secondary text `#6B7280`, borders `#ECECEC`; frontmatter says `#000000`, `#444748`, `#c4c7c7`. The five rendered `screen.png` files and their HTML use the **frontmatter** values. The frontmatter is therefore authoritative (Appendix A), and the prose palette is disregarded. Building from the prose would produce screens that visibly differ from the approved designs.
+Two consequences follow, and both correct `DESIGN.md`:
+
+1. **Nothing in the interface is pure black.** `DESIGN.md` frontmatter names `primary: #000000`, but the mark's ink is `#1E1E1E`. A true-black button beside the real logo makes the logo look faded. Primary is `#1E1E1E`.
+2. **The neutral ramp is neutral.** Every grey in `DESIGN.md` carries a faint cool cast — `#1a1c1c`, `#444748`, `#c4c7c7`, `#747878` all have green and blue channels above red. The mark is pure neutral. Anchoring on the mark means the greys lose that cast, which removes a temperature clash nobody would name but everybody would feel.
+
+**The mark licenses no colour at all.** It is one ink on one ground. `DESIGN.md`'s `secondary-container: #dce2f3` — a pale blue, its single non-monochrome token — is therefore dropped. Colour appears only where meaning demands it: error states. Status is otherwise carried by weight, position, and space.
+
+**Shape language** comes from the mark's one structural idea: generously rounded outer corners against a hard internal diagonal. Containers take a wide radius, interactive elements a tighter one, and the diagonal is available as a progress motif — but only where it means something, never as ornament.
+
+Type is **Geist** throughout, retained from `DESIGN.md`; its geometric construction suits the mark.
+
+This replaces the sage/canvas/ink palette of the original draft. The four SVGs in `brand/` belong to that superseded identity and remain only as history.
+
+**Asset gap.** The only master is a 1254px PNG carrying compression noise — 2,761 distinct colours for a two-colour mark. Before launch the mark needs redrawing as SVG, plus a flat single-tone variant for small sizes, a lockup with the wordmark set in Geist, and a favicon. Not blocking Phase 0.9, which can ship from the PNG.
+
+**Accessibility note (NFR-8).** `DESIGN.md`'s hairline borders (`#c4c7c7` on white, ~1.9:1) fail WCAG 1.4.11, which requires 3:1 for the boundary of a user-interface component. Appendix A therefore separates two tokens: `outline` `#8A8A8A` (3.1:1) for input borders and anything focusable, and `outline-subtle` `#E4E4E4` for purely decorative dividers, where no contrast minimum applies. The visual difference is small; the compliance difference is not. Reverting to a uniform hairline is a one-token change if the lighter look is preferred, and is then a knowing tradeoff rather than an oversight.
 
 ## 10. Non-functional requirements
 
@@ -378,36 +393,86 @@ Deployment: three Vercel projects, one repo; preview environments are staging
 
 ## Appendix A — Design tokens
 
-Replaced 2026-08-01. Source of truth: the **frontmatter** of `references/login_system/job_tracker_ai_design_system/DESIGN.md`, cross-checked against the hex values actually rendered in the five reference screens. See the note in §9 on why the frontmatter wins over that file's prose.
+Replaced 2026-08-01, derived from the logo mark at `references/brand/logo.png`. Structure, type, and spacing come from `references/login_system/job_tracker_ai_design_system/DESIGN.md`; the palette is re-anchored on the mark for the reasons in §9. Contrast ratios below are computed, not estimated.
 
-**Core palette**
+### Ink scale — sampled directly from the mark
+
+The mark's fold produces three tonal facets. They are the interaction states.
+
+| Token | Hex | Origin | Use | On white |
+|---|---|---|---|---|
+| `ink-pressed` | `#181818` | deepest facet (18% of mark) | Primary button, active/pressed | 17.8:1 |
+| `ink` | `#1E1E1E` | dominant face (29%) | Primary button rest, headings, the mark itself | 16.7:1 |
+| `ink-hover` | `#2A2A2A` | fold highlight (8%) | Primary button hover | 14.4:1 |
+
+Nothing in the interface uses `#000000`.
+
+### Text
+
+| Token | Hex | Use | On white | On canvas |
+|---|---|---|---|---|
+| `text` | `#1E1E1E` | Headings, body | 16.7:1 | 16.0:1 |
+| `text-muted` | `#5C5C5C` | Secondary copy, labels, helper text | 6.7:1 | 6.4:1 |
+| `text-subtle` | `#757575` | Placeholders, inactive icons | 4.6:1 | 4.4:1 |
+| `text-on-ink` | `#FFFFFF` | Text on primary buttons | 16.7:1 | — |
+
+Every text token clears WCAG AA (4.5:1) on both white and canvas — including placeholders, which are commonly allowed to fail.
+
+### Surfaces
 
 | Token | Hex | Use |
 |---|---|---|
-| `primary` | `#000000` | Primary buttons (Sign In, Create Account) |
-| `on-primary` | `#ffffff` | Text on primary |
-| `background` / `surface` | `#f9f9f9` | Page background |
-| `surface-container-lowest` | `#ffffff` | Cards, the auth panel |
-| `surface-container-low` | `#f3f3f4` | Input fields, subtle fills |
-| `surface-variant` | `#e2e2e2` | Dividers, skeleton blocks |
-| `on-surface` | `#1a1c1c` | Headings and body text |
-| `on-surface-variant` | `#444748` | Secondary text, helper copy, labels |
-| `outline` | `#747878` | Icons, placeholder text |
-| `outline-variant` | `#c4c7c7` | Hairline borders |
-| `inverse-surface` | `#2f3131` | Dark callouts (the "AI INSIGHT" chip) |
-| `error` | `#ba1a1a` | Error text and borders |
-| `error-container` / `on-error-container` | `#ffdad6` / `#93000a` | Error banner fill / text |
-| `secondary-container` | `#dce2f3` | The one non-monochrome accent; use sparingly |
+| `canvas` | `#FAFAFA` | Page background |
+| `surface` | `#FFFFFF` | Cards, the auth panel |
+| `surface-subtle` | `#F4F4F4` | Input fills, hover rows |
+| `surface-inverse` | `#1E1E1E` | Dark callouts (the "AI INSIGHT" chip) |
 
-**Typography** — Geist throughout. Display 48px/700, tracking `-0.02em` · Headline-lg 32px/600, `-0.01em` · Headline-md 24px/600 · Body-lg 16px/400, line-height 1.6 · Body-md 14px/400 · Label-sm 12px/500, tracking `0.02em`. Display drops to 36px on mobile.
+Cards are white on a `#FAFAFA` ground, so they read as raised without needing a heavy shadow.
 
-**Radius** — `sm` 0.25rem · default 0.5rem · `md` 0.75rem · `lg` 1rem · `xl` 1.5rem · `full` 9999px. Large containers take `xl`; buttons and inputs take the default.
+### Lines — two tokens, deliberately
 
-**Spacing** — 1200px container max · 24px gutter · 16px mobile margin, 48px desktop · stack scale 8 / 16 / 32px on an 8px grid.
+| Token | Hex | Use | On white |
+|---|---|---|---|
+| `outline` | `#8A8A8A` | Input borders, focusable boundaries, control edges | 3.45:1 — clears WCAG 1.4.11 |
+| `outline-subtle` | `#E4E4E4` | Decorative dividers only, where no minimum applies | 1.3:1 |
 
-**Grid** — 12 columns desktop, 8 tablet, 4 mobile.
+Splitting these is what lets the interface stay visually light without the input fields becoming legally invisible. Using `outline-subtle` on a control is a defect, not a style choice.
 
-**Elevation** — cards sit on a 1px `outline-variant` border with a wide diffuse shadow. No inner shadows, no bevels; surfaces read flat and matte.
+**Focus** is a 2px `ink` ring at 2px offset — never a colour change alone, and never removed.
+
+### Error — the only colour in the system
+
+| Token | Hex | Use | On white |
+|---|---|---|---|
+| `error` | `#BA1A1A` | Error text, invalid input border | 6.5:1 |
+| `error-surface` | `#FFDAD6` | Error banner fill | — |
+| `text-on-error-surface` | `#93000A` | Text on that fill | — |
+
+Retained from `DESIGN.md`. Error is never signalled by colour alone — always colour plus an icon or explicit text.
+
+### Typography
+
+Geist throughout. Display 48px/700, tracking `-0.02em` (36px on mobile) · Headline-lg 32px/600, `-0.01em` · Headline-md 24px/600 · Body-lg 16px/400, line-height 1.6 · Body-md 14px/400 · Label-sm 12px/500, tracking `0.02em`.
+
+### Radius
+
+`sm` 0.25rem · default 0.5rem · `md` 0.75rem · `lg` 1rem · `xl` 1.5rem · `full` 9999px.
+
+Containers take `xl`, interactive elements the default — echoing the mark, whose rounded outer corners sit against a hard internal diagonal.
+
+### Spacing and grid
+
+1200px container max · 24px gutter · 16px mobile margin, 48px desktop · stack scale 8 / 16 / 32px on an 8px grid · 12 columns desktop, 8 tablet, 4 mobile.
+
+### Elevation
+
+Cards sit on a 1px `outline-subtle` border with a wide diffuse shadow. No inner shadows, no bevels, no gradients; surfaces read flat and matte. The mark's own gradient is a property of the logo, not of the interface.
+
+### Logo usage
+
+Clear space on all sides equal to the width of the mark's upper block. Minimum size 24px, below which the flat single-tone variant is used — the fold gradient muddies at small scale. The mark appears in `ink` on light grounds and reversed to `surface` on `surface-inverse`. It is never recoloured, outlined, rotated, or stretched.
+
+**Assets still required** (see §9): SVG master, flat mono variant, wordmark lockup in Geist, favicon set.
 
 ## Appendix B — Model reference
 

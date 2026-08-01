@@ -5,7 +5,7 @@
 | **Phase** | 0.9 (see PRD §14) |
 | **Date** | 2026-08-01 |
 | **Status** | Pending review |
-| **Source of truth** | `docs/PRD.md` (amended 2026-08-01) · `references/login_system/` |
+| **Source of truth** | `docs/PRD.md` (amended 2026-08-01) · `references/brand/logo.png` (palette) · `references/login_system/` (layout) |
 | **Covers** | FR-1, FR-3, FR-4, FR-42–FR-46 · NFR-12, NFR-13 · P8, P9 · §12.1 |
 
 ---
@@ -217,13 +217,24 @@ Session checks use `getClaims()`, which verifies the JWT locally and triggers re
 
 ## 6. Design system
 
-`packages/ui` is built from the reference tokens first; screens then compose components rather than porting static markup. Porting the HTML directly would spread the same values across five files and guarantee drift.
+`packages/ui` is built from tokens first; screens then compose components rather than porting static markup. Porting the reference HTML directly would spread the same hex values across five files and guarantee drift.
 
-**Authoritative token source is the `DESIGN.md` frontmatter, not its prose.** The file contradicts itself — prose names `#111111` / `#6B7280` / `#ECECEC`, frontmatter names `#000000` / `#444748` / `#c4c7c7`. The rendered `screen.png` files and their HTML use the frontmatter values, so those win. See PRD §9 and Appendix A. Building from the prose yields screens that visibly differ from the approved designs.
+**Tokens come from the logo mark, not from `DESIGN.md`.** PRD Appendix A is authoritative. Two departures from the reference designs are deliberate and must survive implementation review:
 
-Components: `Button` (primary black, secondary) · `Input` (with leading icon, password visibility toggle, error state) · `Card` · `AuthShell` (the two-column split — marketing copy left, form card right) · `Logo` · `Divider` · `FormError` · `Checkbox`.
+| Reference says | We use | Why |
+|---|---|---|
+| `primary: #000000` | `#1E1E1E` | Sampled from the mark. A true-black button next to the real logo makes the logo look faded. |
+| Cool-cast greys (`#1a1c1c`, `#444748`, `#c4c7c7`) | Neutral ramp | The mark is pure neutral; the reference greys run cool. |
+| One hairline border (`#c4c7c7`, ~1.9:1) | `outline` `#8A8A8A` for controls, `outline-subtle` `#E4E4E4` for decoration | WCAG 1.4.11 requires 3:1 on a control boundary. |
+| `secondary-container: #dce2f3` | dropped | The mark licenses no colour. |
+
+A screen that renders `#000000`, or an input bordered with `outline-subtle`, is a bug — the visual diff against `screen.png` will be subtle, so this is checked by token lint rather than by eye.
+
+**Components:** `Button` (primary using the three-facet ink scale for rest/hover/pressed, secondary) · `Input` (leading icon, password visibility toggle, error state) · `Card` · `AuthShell` (two-column split — marketing copy left, form card right) · `Logo` · `Divider` · `FormError` · `Checkbox`.
 
 `AuthShell` collapses to a single column on mobile, dropping the left panel. Geist loads through `next/font` in each app's root layout.
+
+**Logo asset.** Phase 0.9 ships the existing PNG. It is a lossy master — 2,761 distinct colours for a two-colour mark — so `Logo` takes a `variant` prop from the start (`gradient` | `flat`), letting the SVG replace the PNG later without touching a single consumer. Below 24px the flat variant is used; the fold muddies at small scale.
 
 ---
 
@@ -285,6 +296,12 @@ SUPABASE_SERVICE_ROLE_KEY             # tests and scripts only — never under a
 5. No recursion: selecting from `profiles` as both a normal user and an admin succeeds — a guard against the RLS recursion in §4.1 reappearing.
 6. Bundle audit: `SUPABASE_SERVICE_ROLE_KEY` in no client bundle; `apps/web` contains no Supabase code.
 
+**Design tokens** — the palette departs from the reference HTML deliberately (§6), and the diff is too subtle to catch by eye:
+
+7. Token lint: no raw hex literal appears in `apps/**` or `packages/ui/**` outside the Tailwind preset. Enforced by an ESLint rule, failing the build.
+8. Forbidden values: `#000000`, and the reference cool greys `#1a1c1c` / `#444748` / `#c4c7c7` / `#747878`, appear nowhere in source.
+9. Contrast: a unit test asserts every text-on-background pair in the preset computes ≥4.5:1, and every `outline` pair ≥3:1, using the same formula as PRD Appendix A. A future token edit that breaks accessibility fails CI rather than shipping.
+
 **Integration** (Vitest, local Supabase): signup creates exactly one profile row with `full_name` populated · unverified sign-in yields no session · recovery `verifyOtp` establishes a session · `updateUser` changes the password and invalidates the old one.
 
 **End-to-end** (Playwright, local Supabase + Inbucket): signup → verify → dashboard · sign in → sign out → protected redirect · full recovery round trip, old password rejected · non-admin gets 404 on admin, admin gets the overview · Google button absent when the flag is unset.
@@ -305,7 +322,9 @@ No live model calls anywhere — this phase makes none.
 | Missing preview wildcard in the redirect allow-list | Explicit config step (§8), verified by a manual staging sign-in |
 | Auth cookies cached by a CDN | NFR-12; header assertion in test 4 |
 | Design drift from porting reference HTML | `packages/ui` built first; screens compose it (§6) |
-| `DESIGN.md` self-contradiction implemented inconsistently | Frontmatter declared authoritative in PRD Appendix A (§6) |
+| Reference HTML's `#000000` and cool greys leak in during implementation | Token lint fails the build on any raw hex outside the Tailwind preset (§6, §9) |
+| Lossy PNG logo shipped as the permanent master | `Logo` variant prop from day one, so the SVG swap touches no consumer (§6) |
+| Input borders left at the reference hairline, failing WCAG 1.4.11 | Two separate line tokens; using `outline-subtle` on a control is a defect (PRD Appendix A) |
 
 ---
 
