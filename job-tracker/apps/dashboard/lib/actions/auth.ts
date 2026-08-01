@@ -1,8 +1,10 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@job-tracker/db/server'
 import { isPlausibleEmail, safeNext, validateNewPassword, validateSignUp } from '../validation'
+import { RECOVERY_COOKIE } from '../auth-cookies'
 
 export type AuthState = { error?: string }
 
@@ -95,10 +97,31 @@ export async function updatePasswordAction(_prev: AuthState, form: FormData): Pr
   const invalid = validateNewPassword(password, confirm)
   if (invalid) return { error: invalid }
 
+  // Same gate as the page. A session alone is not proof of a recovery link,
+  // and this action is reachable without rendering the page.
+  const cookieStore = await cookies()
+  if (cookieStore.get(RECOVERY_COOKIE)?.value !== '1') {
+    redirect('/forgot-password')
+  }
+
   const supabase = await createServerSupabase()
   // verifyOtp already put a recovery session in cookies, so this needs no token.
   const { error } = await supabase.auth.updateUser({ password })
-  if (error) return { error: 'That link has expired. Request a new one and try again.' }
+  if (error) {
+    // Not every failure is expiry. Reusing the current password, failing the
+    // strength policy and needing reauthentication are all distinct, and
+    // reporting them all as "expired" sends the user round the recovery loop
+    // forever with no path to the real fix.
+    if (/different from the old password/i.test(error.message)) {
+      return { error: 'Choose a password you have not used here before.' }
+    }
+    if (/password/i.test(error.message) && /weak|short|strength|characters/i.test(error.message)) {
+      return { error: error.message }
+    }
+    return { error: 'That link has expired. Request a new one and try again.' }
+  }
 
+  // One recovery link, one password change.
+  cookieStore.delete(RECOVERY_COOKIE)
   redirect('/dashboard')
 }

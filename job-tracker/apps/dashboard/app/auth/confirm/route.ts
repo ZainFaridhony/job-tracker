@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
-
 import { createServerSupabase, type EmailOtpType } from '@job-tracker/db/server'
+import { noStore } from '@job-tracker/db/proxy'
 import { safeNext } from '@/lib/validation'
+import { RECOVERY_COOKIE, recoveryCookieOptions } from '@/lib/auth-cookies'
 
 /**
  * Verifies emailed links: signup confirmation and password recovery.
@@ -19,8 +20,16 @@ export async function GET(request: NextRequest) {
   if (tokenHash && type) {
     const supabase = await createServerSupabase()
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash })
-    if (!error) return NextResponse.redirect(`${origin}${next}`)
+    if (!error) {
+      // noStore: this response carries a Set-Cookie for a fresh session, so no
+      // shared cache may keep it (NFR-12).
+      const response = noStore(NextResponse.redirect(`${origin}${next}`))
+      if (type === 'recovery') {
+        response.cookies.set(RECOVERY_COOKIE, '1', recoveryCookieOptions)
+      }
+      return response
+    }
   }
 
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  return noStore(NextResponse.redirect(`${origin}/auth/auth-code-error`))
 }

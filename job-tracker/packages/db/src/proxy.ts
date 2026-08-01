@@ -53,3 +53,20 @@ export async function refreshSession(request: NextRequest) {
 
   return { response, claims, redirect }
 }
+
+/**
+ * Headers @supabase/ssr attaches when it writes auth cookies (NFR-12).
+ * refreshSession propagates them automatically; GET Route Handlers that mint a
+ * session build their own response and must apply them with noStore().
+ */
+export const NO_STORE_HEADERS: Record<string, string> = {
+  'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
+  Expires: '0',
+  Pragma: 'no-cache',
+}
+
+/** Marks a response as uncacheable by any shared cache. */
+export function noStore<T extends NextResponse>(response: T): T {
+  for (const [k, v] of Object.entries(NO_STORE_HEADERS)) response.headers.set(k, v)
+  return response
+}
