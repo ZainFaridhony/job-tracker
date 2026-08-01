@@ -2286,7 +2286,7 @@ git commit -m "feat: sign up, email confirmation and check-email"
 **Files:**
 - Create: `apps/dashboard/proxy.ts`, `apps/dashboard/app/(auth)/sign-in/page.tsx`, `sign-in/sign-in-form.tsx`
 - Create: `apps/dashboard/app/auth/callback/route.ts`
-- Create: `apps/dashboard/e2e/auth.spec.ts`, `apps/dashboard/playwright.config.ts`
+- Create: `apps/dashboard/e2e/helpers.ts`, `apps/dashboard/e2e/auth.spec.ts`, `apps/dashboard/playwright.config.ts`
 - Modify: `apps/dashboard/lib/actions/auth.ts`
 
 **Interfaces:**
@@ -2529,16 +2529,18 @@ Add to `apps/dashboard/package.json` scripts: `"e2e": "playwright test"`.
 
 - [ ] **Step 7: Write the end-to-end auth test**
 
-`apps/dashboard/e2e/auth.spec.ts`:
+`apps/dashboard/e2e/helpers.ts` — extracted first, because five tests across this task and Task 8 need the same sign-up sequence and duplicating it is how e2e suites rot:
+
 ```ts
-import { test, expect } from '@playwright/test'
+import { expect, type APIRequestContext, type Page } from '@playwright/test'
 
 const INBUCKET = 'http://127.0.0.1:54324'
-const PASSWORD = 'Str0ng-Passphrase'
-const email = () => `e2e-${Math.random().toString(36).slice(2, 10)}@example.test`
+export const PASSWORD = 'Str0ng-Passphrase'
+
+export const uniqueEmail = () => `e2e-${Math.random().toString(36).slice(2, 10)}@example.test`
 
 /** Newest message for this address, via the local Inbucket API. */
-async function latestLink(request: import('@playwright/test').APIRequestContext, addr: string) {
+export async function latestLink(request: APIRequestContext, addr: string) {
   const mailbox = addr.split('@')[0]!
   const list = await (await request.get(`${INBUCKET}/api/v1/mailbox/${mailbox}`)).json()
   expect(list.length, 'no message arrived').toBeGreaterThan(0)
@@ -2550,22 +2552,48 @@ async function latestLink(request: import('@playwright/test').APIRequestContext,
   return href!.replace(/&amp;/g, '&')
 }
 
+/** Fills and submits the sign-up form. Leaves the page wherever it lands. */
+export async function submitSignUp(page: Page, addr: string, password = PASSWORD) {
+  await page.goto('/sign-up')
+  await page.getByLabel('Full Name').fill('E2E User')
+  await page.getByLabel('Email Address').fill(addr)
+  await page.getByLabel('Password', { exact: true }).fill(password)
+  await page.getByLabel('Confirm Password').fill(password)
+  await page.getByRole('checkbox').check()
+  await page.getByRole('button', { name: 'Create Account' }).click()
+}
+
+/** Signs up and follows the confirmation link. Ends on /dashboard. */
+export async function signUpAndConfirm(page: Page, request: APIRequestContext, addr: string) {
+  await submitSignUp(page, addr)
+  await expect(page).toHaveURL(/\/check-email/)
+  await page.goto(await latestLink(request, addr))
+  await expect(page).toHaveURL(/\/dashboard/)
+}
+
+/** Fills and submits the sign-in form. Assumes the page is already on /sign-in. */
+export async function submitSignIn(page: Page, addr: string, password: string) {
+  await page.getByLabel('Email').fill(addr)
+  await page.getByLabel('Password').fill(password)
+  await page.getByRole('button', { name: 'Sign In' }).click()
+}
+```
+
+`apps/dashboard/e2e/auth.spec.ts`:
+```ts
+import { test, expect } from '@playwright/test'
+import {
+  PASSWORD, uniqueEmail, latestLink, submitSignUp, signUpAndConfirm, submitSignIn,
+} from './helpers'
+
 test('unauthenticated access redirects to sign-in and remembers the destination', async ({ page }) => {
   await page.goto('/dashboard')
   await expect(page).toHaveURL(/\/sign-in\?next=%2Fdashboard/)
 })
 
 test('sign up, confirm, land on the dashboard, sign out', async ({ page, request }) => {
-  const addr = email()
-
-  await page.goto('/sign-up')
-  await page.getByLabel('Full Name').fill('E2E User')
-  await page.getByLabel('Email Address').fill(addr)
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
-  await page.getByLabel('Confirm Password').fill(PASSWORD)
-  await page.getByRole('checkbox').check()
-  await page.getByRole('button', { name: 'Create Account' }).click()
-
+  const addr = uniqueEmail()
+  await submitSignUp(page, addr)
   await expect(page).toHaveURL(/\/check-email/)
   await expect(page.getByText('Check your inbox')).toBeVisible()
 
@@ -2580,33 +2608,17 @@ test('sign up, confirm, land on the dashboard, sign out', async ({ page, request
 })
 
 test('wrong password names neither field', async ({ page, request }) => {
-  const addr = email()
-  await page.goto('/sign-up')
-  await page.getByLabel('Full Name').fill('E2E User')
-  await page.getByLabel('Email Address').fill(addr)
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
-  await page.getByLabel('Confirm Password').fill(PASSWORD)
-  await page.getByRole('checkbox').check()
-  await page.getByRole('button', { name: 'Create Account' }).click()
-  await page.goto(await latestLink(request, addr))
-
+  const addr = uniqueEmail()
+  await signUpAndConfirm(page, request, addr)
   await page.getByRole('button', { name: 'Sign out' }).click()
-  await page.getByLabel('Email').fill(addr)
-  await page.getByLabel('Password').fill('completely-wrong')
-  await page.getByRole('button', { name: 'Sign In' }).click()
 
+  await submitSignIn(page, addr, 'completely-wrong')
   await expect(page.getByRole('alert')).toHaveText('Email or password is incorrect.')
 })
 
 test('NFR-12 — a response that sets an auth cookie forbids shared caching', async ({ page, request }) => {
-  const addr = email()
-  await page.goto('/sign-up')
-  await page.getByLabel('Full Name').fill('E2E User')
-  await page.getByLabel('Email Address').fill(addr)
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
-  await page.getByLabel('Confirm Password').fill(PASSWORD)
-  await page.getByRole('checkbox').check()
-  await page.getByRole('button', { name: 'Create Account' }).click()
+  const addr = uniqueEmail()
+  await submitSignUp(page, addr)
 
   // The confirm response is the one that establishes the session, so it is the
   // one that must never be cacheable by a shared proxy.
@@ -2641,7 +2653,7 @@ git commit -m "feat: sign in, route protection via proxy.ts, sign out"
 - Create: `apps/dashboard/app/(auth)/forgot-password/page.tsx`, `forgot-password/forgot-form.tsx`
 - Create: `apps/dashboard/app/(auth)/reset-password/page.tsx`, `reset-password/reset-form.tsx`
 - Modify: `apps/dashboard/lib/actions/auth.ts`, `apps/dashboard/lib/validation.ts`
-- Modify: `apps/dashboard/e2e/auth.spec.ts`
+- Create: `apps/dashboard/e2e/recovery.spec.ts` (reuses `e2e/helpers.ts` from Task 7)
 
 **Interfaces:**
 - Consumes: `/auth/confirm` (Task 6), `refreshSession` (Task 5).
@@ -2856,30 +2868,23 @@ export default async function ResetPasswordPage() {
 
 - [ ] **Step 8: Extend the e2e suite with the recovery round trip**
 
-Append to `apps/dashboard/e2e/auth.spec.ts`:
+Create `apps/dashboard/e2e/recovery.spec.ts`, reusing the helpers from Task 7:
 ```ts
-test('recover a forgotten password, and the old one stops working', async ({ page, request }) => {
-  const addr = email()
-  const NEW_PASSWORD = 'Rotated-Passphrase-2'
+import { test, expect } from '@playwright/test'
+import { PASSWORD, uniqueEmail, latestLink, signUpAndConfirm, submitSignIn } from './helpers'
 
-  // Create and confirm an account.
-  await page.goto('/sign-up')
-  await page.getByLabel('Full Name').fill('Recovery User')
-  await page.getByLabel('Email Address').fill(addr)
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD)
-  await page.getByLabel('Confirm Password').fill(PASSWORD)
-  await page.getByRole('checkbox').check()
-  await page.getByRole('button', { name: 'Create Account' }).click()
-  await page.goto(await latestLink(request, addr))
+const NEW_PASSWORD = 'Rotated-Passphrase-2'
+
+test('recover a forgotten password, and the old one stops working', async ({ page, request }) => {
+  const addr = uniqueEmail()
+  await signUpAndConfirm(page, request, addr)
   await page.getByRole('button', { name: 'Sign out' }).click()
 
-  // Ask for a reset.
   await page.goto('/forgot-password')
   await page.getByLabel('Email Address').fill(addr)
   await page.getByRole('button', { name: 'Send reset link' }).click()
   await expect(page).toHaveURL(/\/check-email/)
 
-  // Follow the recovery link and choose a new password.
   await page.goto(await latestLink(request, addr))
   await expect(page).toHaveURL(/\/reset-password/)
   await page.getByLabel('New Password').fill(NEW_PASSWORD)
@@ -2887,16 +2892,13 @@ test('recover a forgotten password, and the old one stops working', async ({ pag
   await page.getByRole('button', { name: 'Update password' }).click()
   await expect(page).toHaveURL(/\/dashboard/)
 
-  // The old password must be dead.
+  // The old password must be dead...
   await page.getByRole('button', { name: 'Sign out' }).click()
-  await page.getByLabel('Email').fill(addr)
-  await page.getByLabel('Password').fill(PASSWORD)
-  await page.getByRole('button', { name: 'Sign In' }).click()
+  await submitSignIn(page, addr, PASSWORD)
   await expect(page.getByRole('alert')).toHaveText('Email or password is incorrect.')
 
-  // The new one must work.
-  await page.getByLabel('Password').fill(NEW_PASSWORD)
-  await page.getByRole('button', { name: 'Sign In' }).click()
+  // ...and the new one must work.
+  await submitSignIn(page, addr, NEW_PASSWORD)
   await expect(page).toHaveURL(/\/dashboard/)
 })
 
