@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import type { Database } from './types.js'
+import type { Database } from './types'
 
 export type JwtClaims = { sub: string; email?: string; [key: string]: unknown }
 
@@ -39,7 +39,10 @@ export async function refreshSession(request: NextRequest) {
   )
 
   // Verified locally against the JWT signature; refreshes the token when expired.
-  const { data: claims } = await supabase.auth.getClaims()
+  // getClaims() resolves to { claims, header, signature } — the payload is
+  // data.claims, not data.
+  const { data } = await supabase.auth.getClaims()
+  const claims = (data?.claims as JwtClaims | undefined) ?? null
 
   function redirect(url: URL) {
     const r = NextResponse.redirect(url)
@@ -48,5 +51,5 @@ export async function refreshSession(request: NextRequest) {
     return r
   }
 
-  return { response, claims: (claims as JwtClaims | null) ?? null, redirect }
+  return { response, claims, redirect }
 }

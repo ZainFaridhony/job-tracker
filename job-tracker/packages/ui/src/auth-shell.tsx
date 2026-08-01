@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Logo } from './logo.js'
+import { Logo } from './logo'
 
 /**
  * The two-column auth layout from the reference designs: marketing copy left,

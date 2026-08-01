@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { TOKENS } from './tokens.js'
-import { contrastRatio } from './contrast.js'
+import { TOKENS } from './tokens'
+import { contrastRatio } from './contrast'
 
 const BACKGROUNDS = ['surface', 'canvas', 'surface-subtle'] as const
 const TEXT = ['text', 'text-muted', 'text-subtle'] as const

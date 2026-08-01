@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { relativeLuminance, contrastRatio } from './contrast.js'
+import { relativeLuminance, contrastRatio } from './contrast'
 
 describe('relativeLuminance', () => {
   it('is 0 for black and 1 for white', () => {

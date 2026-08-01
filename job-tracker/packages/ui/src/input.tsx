@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from 'react'
-import { cn } from './cn.js'
+import { cn } from './cn'
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label: string

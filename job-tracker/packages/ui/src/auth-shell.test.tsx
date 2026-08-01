@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { AuthShell } from './auth-shell.js'
+import { AuthShell } from './auth-shell'
 
 describe('AuthShell', () => {
   it('renders the marketing headline as the page heading and shows the form', () => {

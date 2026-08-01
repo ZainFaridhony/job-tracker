@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from './types.js'
+import type { Database } from './types'
 
 /** RSC / Server Action client, bound to the request's cookies. */
 export async function createServerSupabase() {
@@ -28,3 +28,6 @@ export async function createServerSupabase() {
     },
   )
 }
+
+/** Re-exported so apps need no direct dependency on supabase-js. */
+export type { EmailOtpType } from '@supabase/supabase-js'

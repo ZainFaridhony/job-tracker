@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { Input } from './input.js'
+import { Input } from './input'
 
 describe('Input', () => {
   it('associates its label with the control', () => {
