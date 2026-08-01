@@ -7,6 +7,12 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   jobTrackerRules,
+  {
+    // Google's brand guidelines forbid recolouring their mark, so this single
+    // file is exempt from the monochrome token rule. Nothing else should be.
+    files: ['app/(auth)/google-button.tsx'],
+    rules: { 'job-tracker/no-raw-color': 'off' },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import Link from 'next/link'
 import { Button, Card, Checkbox, FormError, Input } from '@job-tracker/ui'
 import { signUpAction, type AuthState } from '@/lib/actions/auth'
+import { GoogleButton } from '../google-button'
 
 export function SignUpForm() {
   const [state, action, pending] = useActionState<AuthState, FormData>(signUpAction, {})
@@ -40,6 +41,8 @@ export function SignUpForm() {
           {pending ? 'Creating account…' : 'Create Account'}
         </Button>
       </form>
+
+      <GoogleButton />
 
       <p className="mt-8 text-center text-sm text-text-muted">
         Already have an account?{' '}

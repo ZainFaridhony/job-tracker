@@ -125,3 +125,37 @@ export async function updatePasswordAction(_prev: AuthState, form: FormData): Pr
   cookieStore.delete(RECOVERY_COOKIE)
   redirect('/dashboard')
 }
+
+export async function signInWithGoogleAction(): Promise<void> {
+  const supabase = await createServerSupabase()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    // PKCE: Google returns ?code=, which /auth/callback exchanges. Email links
+    // use ?token_hash and go to /auth/confirm instead.
+    options: { redirectTo: `${siteUrl()}/auth/callback` },
+  })
+
+  if (error || !data.url) redirect('/auth/auth-code-error')
+  redirect(data.url)
+}
+
+/**
+ * FR-44 for OAuth accounts. A Google user never ticks the terms box, so the
+ * signup trigger leaves accepted_terms_at null and /auth/callback parks them
+ * here. This is the only place that timestamp gets set after the fact.
+ */
+export async function acceptTermsAction(): Promise<void> {
+  const supabase = await createServerSupabase()
+  const { data } = await supabase.auth.getClaims()
+  const userId = data?.claims.sub
+  if (!userId) redirect('/sign-in')
+
+  // accepted_terms_at is in the column grant, so this runs under the user's own
+  // RLS policy - no elevated client involved.
+  await supabase
+    .from('profiles')
+    .update({ accepted_terms_at: new Date().toISOString() })
+    .eq('id', userId)
+
+  redirect('/dashboard')
+}

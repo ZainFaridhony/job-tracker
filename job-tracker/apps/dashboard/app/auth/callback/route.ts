@@ -12,8 +12,24 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = await createServerSupabase()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    // noStore: sets a session cookie, so it must never be shared-cached (NFR-12).
-    if (!error) return noStore(NextResponse.redirect(`${origin}${next}`))
+    if (!error) {
+      // FR-44: a Google user never ticked the terms box, so the signup trigger
+      // left accepted_terms_at null. Park them on the interstitial rather than
+      // letting an unaccepted account reach the product.
+      const { data } = await supabase.auth.getClaims()
+      const userId = data?.claims.sub
+      let destination = next
+      if (userId) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('accepted_terms_at')
+          .eq('id', userId)
+          .maybeSingle()
+        if (!profile?.accepted_terms_at) destination = '/accept-terms'
+      }
+      // noStore: sets a session cookie, so it must never be shared-cached (NFR-12).
+      return noStore(NextResponse.redirect(`${origin}${destination}`))
+    }
   }
 
   return noStore(NextResponse.redirect(`${origin}/auth/auth-code-error`))

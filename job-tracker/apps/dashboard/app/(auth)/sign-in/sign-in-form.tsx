@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import Link from 'next/link'
 import { Button, Card, FormError, Input } from '@job-tracker/ui'
 import { signInAction, type AuthState } from '@/lib/actions/auth'
+import { GoogleButton } from '../google-button'
 
 export function SignInForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(signInAction, {})
@@ -36,6 +37,8 @@ export function SignInForm({ next }: { next: string }) {
         </div>
         <Button type="submit" pending={pending}>{pending ? 'Signing in…' : 'Sign In'}</Button>
       </form>
+
+      <GoogleButton />
 
       <p className="mt-8 text-center text-sm text-text-muted">
         Don&apos;t have an account?{' '}
