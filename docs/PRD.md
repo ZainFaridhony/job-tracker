@@ -4,7 +4,7 @@
 |---|---|
 | **Product** | Job Tracker AI |
 | **Author** | Zain |
-| **Date** | 2026-07-28 · amended 2026-08-01 |
+| **Date** | 2026-07-28 · amended 2026-08-01, 2026-08-02 |
 | **Status** | v1 approved; amendment pending approval |
 | **Phase covered** | Phase 1 (v1.0). Phases 2–3 specified at summary level only. |
 
@@ -12,7 +12,9 @@
 >
 > Changed here: **FR-1** rewritten · **FR-2** and **NG5** withdrawn · **FR-42–FR-46** and **NFR-11–NFR-13** added · **§4**, **§5 J1**, **§8 cost budget**, **§9**, **§13**, **§14**, **§15** revised · **Appendix A** replaced by the design system in `references/login_system/job_tracker_ai_design_system/DESIGN.md` · **Q1** resolved.
 >
-> Withdrawn IDs are retained rather than renumbered, so references from the implementation plans stay resolvable. Privacy rule **P6** and non-goals **NG1–NG4, NG6** are unchanged. The problem statement (§1) and success metrics (§2) are unchanged — M1 still wins any tradeoff.
+> **Amendment — 2026-08-02.** The onboarding wizard in `references/onboarding` is six mandatory steps, not one CV upload. Two consequences recorded rather than left implicit: **NG2 is now UNDER REVIEW** (§3) because steps 2–5 collect job-preference data that only pays off if the product recommends jobs, and **J1's timing is re-baselined** (§5) because six forms do not fit in three minutes. Both were Zain's decisions, taken after the conflicts were raised. Neither is resolved — NG2 needs a verdict before 1.0, and the 1.1 exit criterion needs measuring against real people.
+>
+> > Withdrawn IDs are retained rather than renumbered, so references from the implementation plans stay resolvable. Privacy rule **P6** and non-goals **NG1–NG4, NG6** are unchanged. The problem statement (§1) and success metrics (§2) are unchanged — M1 still wins any tradeoff.
 
 ---
 
@@ -48,7 +50,7 @@ Stated as hard product boundaries, not "later maybe":
 | # | The product will not | Rationale |
 |---|---|---|
 | NG1 | Submit applications on the user's behalf | Keeps the user honest and accountable; avoids account bans on job platforms |
-| NG2 | Search for, recommend, or feed jobs | The user always brings the URL. No job board, no daily digest, no scraping of listings at scale. |
+| NG2 | ~~Search for, recommend, or feed jobs~~ **UNDER REVIEW 2026-08-02** | Original rationale: the user always brings the URL; no job board, no daily digest, no scraping at scale. **The onboarding wizard now collects career goals, target roles, locations and salary (steps 2–5), and that data has no consumer unless the product recommends jobs.** Zain chose to build those steps knowing this. Either NG2 is withdrawn and job discovery becomes real scope — with its own spec, because it means a jobs source, ranking, and materially more AI spend — or those columns stay unread. Decide before 1.0. Until then they are storage, not a feature. |
 | NG3 | Read the user's email to auto-advance stages | Stage changes are manual. Avoids an OAuth mail scope over a mailbox full of unrelated PII. |
 | NG4 | Provide a resume design editor | No template gallery, no font pickers. Generated documents use one opinionated layout. |
 | ~~NG5~~ | ~~Support public self-serve signup~~ | **Withdrawn 2026-08-01.** Signup is now public (FR-1). This deliberately takes on the ToS and abuse-handling surface the original boundary existed to avoid — see FR-44 and NFR-11. |
@@ -66,10 +68,24 @@ Stated as hard product boundaries, not "later maybe":
 
 ## 5. Core user journeys
 
-**J1 — First run (must complete in under 3 minutes).**
+**J1 — First run (re-baselined 2026-08-02: under 3 minutes for the CV gate; up to ~6 minutes for the full wizard).**
 Land on the marketing site → *Create Account* → name, email, password, accept terms → verification email arrives → click through → prompted to upload CV (dashboard is inaccessible until this completes) → CV uploads, text extracted → board appears with six default stages and an empty state pointing at one button: *+ Add job*.
 *Alternate entry:* *Continue with Google* skips password creation and email verification, landing directly on the CV gate.
 *Returning user who forgot their password:* sign in → *Forgot password?* → recovery email → set a new password → dashboard (FR-42).
+
+**Note on the 3-minute budget (2026-08-02).** The original figure assumed
+onboarding was one screen: upload a CV, land on the board. The wizard designed
+in `references/onboarding` is **six mandatory steps**, and six forms cannot be
+completed in three minutes by someone reading them properly. Zain reaffirmed
+all six as required after the conflict was raised, so the target is re-based
+rather than quietly missed: **the CV gate (step 1) keeps the under-3-minutes
+budget**, and the full wizard is allowed ~6. Mitigations in scope: the AI
+pre-fills steps 3–4 so the fast path is confirmation rather than typing, and
+each step persists on submit so a drop-off resumes instead of restarting.
+
+This puts real pressure on the **1.1 exit criterion** — "someone other than
+Zain completes J1 unaided". Measure it before inviting anyone; if strangers
+drop out mid-wizard, making steps 2–5 skippable is the first thing to try.
 
 **J2 — Log a job (the highest-frequency action; target <60s).**
 Click *+ Add job* → paste URL → system fetches and extracts company, title, location, work mode, salary, description, requirements → card appears in *Saved* → optionally run gap analysis.
