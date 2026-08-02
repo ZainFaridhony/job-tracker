@@ -6,5 +6,11 @@ import { noRawColor } from './eslint-rules/no-raw-color.js'
  */
 export const jobTrackerRules = {
   plugins: { 'job-tracker': { rules: { 'no-raw-color': noRawColor } } },
-  rules: { 'job-tracker/no-raw-color': 'error' },
+  rules: {
+    'job-tracker/no-raw-color': 'error',
+    // Server Actions have signatures the framework dictates, not us: a form
+    // action is handed FormData whether it wants it or not, and useActionState
+    // prepends previous state. Underscore marks a parameter kept for shape.
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+  },
 }

@@ -56,6 +56,8 @@ Database is the **cloud** Supabase project `rruexatjgmmazyldqirp` (ap-southeast-
 
 **`getClaims()` resolves to `{ claims, header, signature }`.** The payload is `data.claims`, not `data`. Docs snippets showing `const { data: claims }` are misleading.
 
+**Wrapping a Server Action in a client closure silently kills progressive enhancement.** `useActionState(async () => { await someServerAction() })` compiles and works with JavaScript on, but Next emits no `$ACTION_*` hidden fields for it, so the form does nothing without JS. Pass the action itself — `<form action={someServerAction}>` — and read `pending` from `useFormStatus()` in a child. This cost step 6 of the onboarding wizard its no-JS path; the other five steps were fine because they pass the action to `useActionState` by reference.
+
 **Never hardcode the host in a redirect.** `127.0.0.1` and `localhost` are different hosts to a browser, so cookies do not cross between them — a PKCE verifier set on one is absent on the other and the exchange fails silently. Use `requestOrigin()` (`apps/dashboard/lib/origin.ts`), which reads `x-forwarded-host`/`host`. `new URL(request.url).origin` is not safe here: Next normalises `127.0.0.1` to `localhost` in dev.
 
 **Testing Library needs explicit cleanup.** Auto-cleanup only registers under `globals: true`, which this project does not use. `packages/ui/test/setup.ts` calls `afterEach(cleanup)` — without it renders accumulate and every `getBy*` finds duplicates.
@@ -86,9 +88,20 @@ Email+password and Google OAuth, public signup. See `docs/PRD.md` for requiremen
 
 Redirect targets always go through `safeNext()` (`apps/dashboard/lib/validation.ts`). It normalises before checking, because the URL parser strips tab/LF/CR and treats `\` as `/` — so a naive `startsWith('//')` check let `/\evil.com` through as a working open redirect.
 
+## Onboarding
+
+Six mandatory steps at `/onboarding/[step]`, driven by `apps/dashboard/lib/onboarding/steps.ts`. Step 1 uploads a CV; text is extracted locally (`lib/cv/extract-text.ts`) and only then sent to Groq (`packages/ai`), which pre-fills steps 3–4.
+
+**The gate is one pure function, called twice.** `lib/onboarding/gate.ts` decides where a signed-in user belongs; `proxy.ts` applies it to every request and `[step]/page.tsx` applies it again on render. Both must use it — a soft client navigation reaches the page without re-running the proxy, and the proxy runs on paths the page never renders. Changing the rules in one place only is how step 4 becomes reachable before a CV exists.
+
+**A Groq failure must never block onboarding.** `uploadCvAction` swallows the error and advances with empty arrays; the user types those fields by hand. It also never puts the provider's response body in the message, because a Groq error can echo the prompt and the prompt is the CV (P3).
+
+`cvs.extracted_text` and `char_count` are outside the UPDATE column grant but writable on INSERT, which is what lets the action persist them under the user's own RLS with no elevated client. Storage objects are namespaced `"<user-id>/<timestamp>-<name>"` and the policy checks the first segment — so the filename sanitiser must collapse `..` as well as replacing `/`.
+
 ## Known outstanding
 
 - **Email confirmation and password recovery do not work.** Supabase's default templates point at `/auth/v1/verify`, which never establishes a server-side session. They must be changed in the dashboard to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email|recovery&next=...`. No custom SMTP either — the built-in sender caps at a few messages/hour.
 - **The RLS suite does not run.** `test/` is not a member in `pnpm-workspace.yaml`, so its 12 tenant-isolation and privilege-escalation assertions are excluded from `turbo test`. The guarantees were verified by impersonating roles in Postgres instead, but nothing re-checks them.
-- **No Playwright e2e**, despite the plan budgeting for it. `.gitignore` already reserves the output directories.
+- **No Playwright e2e**, despite the plan budgeting for it. `.gitignore` already reserves the output directories. The onboarding flow was instead verified by replaying the rendered `$ACTION_*` fields with curl against `next dev` — that catches redirect chains and the no-JS path, but nothing checks client-side behaviour (chip add/remove, file picker) in a browser.
+- **Steps 2–5 of onboarding store data nothing reads.** Career goal, target roles, work location and salary are written to `profiles` and never consumed, because PRD **NG2** (now under review) rules out job discovery. They are storage until a discovery feature exists.
 - `supabase/config.toml` is stale local-stack config (wrong port, `enable_confirmations = false`) and contradicts the deployed setup.

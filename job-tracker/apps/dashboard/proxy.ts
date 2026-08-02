@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server'
 import { refreshSession } from '@job-tracker/db/proxy'
+import { onboardingRedirect } from '@/lib/onboarding/gate'
 
 const PUBLIC_PREFIXES = [
   '/sign-in',
@@ -15,7 +16,7 @@ function isPublic(pathname: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
-  const { response, claims, redirect } = await refreshSession(request)
+  const { response, claims, redirect, supabase } = await refreshSession(request)
   const { pathname } = request.nextUrl
 
   if (!claims && !isPublic(pathname)) {
@@ -32,6 +33,29 @@ export async function proxy(request: NextRequest) {
     url.pathname = '/dashboard'
     url.search = ''
     return redirect(url)
+  }
+
+  if (claims && !isPublic(pathname)) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_step, onboarding_complete')
+      .eq('id', claims.sub)
+      .maybeSingle()
+
+    // A missing row means the signup trigger did not fire. Treating that as
+    // "not onboarded" routes them to the wizard, whose page bounces them to
+    // /sign-in — a dead end, but not an open door.
+    const target = onboardingRedirect(pathname, {
+      complete: profile?.onboarding_complete ?? false,
+      step: profile?.onboarding_step ?? 1,
+    })
+
+    if (target) {
+      const url = request.nextUrl.clone()
+      url.pathname = target
+      url.search = ''
+      return redirect(url)
+    }
   }
 
   return response

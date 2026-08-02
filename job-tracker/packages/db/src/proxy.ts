@@ -51,7 +51,10 @@ export async function refreshSession(request: NextRequest) {
     return r
   }
 
-  return { response, claims, redirect }
+  // `supabase` is returned so a caller can query under the same refreshed
+  // cookies. Building a second client would read the stale request cookies and
+  // 401 on exactly the request that renewed the token.
+  return { response, claims, redirect, supabase }
 }
 
 /**

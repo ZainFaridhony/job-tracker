@@ -11,15 +11,17 @@
 import { describe, it, expect } from 'vitest'
 import { createGroqExtractor } from '../src/extract-profile'
 
+// Deliberately fictitious. This text is sent to a third party on every run, so
+// it must not carry a real person's name or employer.
 const CV = `
-Faridhony Zain — Senior Backend Engineer
+Rina Halim — Senior Backend Engineer
 Jakarta, Indonesia
 
 EXPERIENCE
-Senior Backend Engineer, Qiscus (2021 - present)
+Senior Backend Engineer, Nusatera Labs (2021 - present)
   Built multi-tenant messaging infrastructure in Go and PostgreSQL.
   Led migration from monolith to services; introduced Kafka.
-Backend Engineer, Tokopedia (2018 - 2021)
+Backend Engineer, Prakarsa Digital (2018 - 2021)
   Payment reconciliation services in Go. Redis, gRPC.
 
 SKILLS

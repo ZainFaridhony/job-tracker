@@ -15,30 +15,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      cvs: {
+        Row: {
+          char_count: number | null
+          created_at: string
+          extracted_text: string | null
+          file_name: string
+          id: string
+          is_primary: boolean
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          char_count?: number | null
+          created_at?: string
+          extracted_text?: string | null
+          file_name: string
+          id?: string
+          is_primary?: boolean
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          char_count?: number | null
+          created_at?: string
+          extracted_text?: string | null
+          file_name?: string
+          id?: string
+          is_primary?: boolean
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           accepted_terms_at: string | null
+          career_goal: string | null
           created_at: string
           full_name: string | null
           id: string
           onboarding_complete: boolean
+          onboarding_step: number
           role: string
+          salary_currency: string | null
+          salary_period: string | null
+          salary_target: string | null
+          skills: string[]
+          target_roles: string[]
+          work_location: string | null
+          years_experience: number | null
         }
         Insert: {
           accepted_terms_at?: string | null
+          career_goal?: string | null
           created_at?: string
           full_name?: string | null
           id: string
           onboarding_complete?: boolean
+          onboarding_step?: number
           role?: string
+          salary_currency?: string | null
+          salary_period?: string | null
+          salary_target?: string | null
+          skills?: string[]
+          target_roles?: string[]
+          work_location?: string | null
+          years_experience?: number | null
         }
         Update: {
           accepted_terms_at?: string | null
+          career_goal?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           onboarding_complete?: boolean
+          onboarding_step?: number
           role?: string
+          salary_currency?: string | null
+          salary_period?: string | null
+          salary_target?: string | null
+          skills?: string[]
+          target_roles?: string[]
+          work_location?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }
