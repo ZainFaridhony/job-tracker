@@ -4,7 +4,7 @@
 |---|---|
 | **Product** | Job Tracker AI |
 | **Author** | Zain |
-| **Date** | 2026-07-28 · amended 2026-08-01, 2026-08-02 |
+| **Date** | 2026-07-28 · amended 2026-08-01, 2026-08-02, 2026-08-04 |
 | **Status** | v1 approved; amendment pending approval |
 | **Phase covered** | Phase 1 (v1.0). Phases 2–3 specified at summary level only. |
 
@@ -13,6 +13,12 @@
 > Changed here: **FR-1** rewritten · **FR-2** and **NG5** withdrawn · **FR-42–FR-46** and **NFR-11–NFR-13** added · **§4**, **§5 J1**, **§8 cost budget**, **§9**, **§13**, **§14**, **§15** revised · **Appendix A** replaced by the design system in `references/login_system/job_tracker_ai_design_system/DESIGN.md` · **Q1** resolved.
 >
 > **Amendment — 2026-08-02.** The onboarding wizard in `references/onboarding` is six mandatory steps, not one CV upload. Two consequences recorded rather than left implicit: **NG2 is now UNDER REVIEW** (§3) because steps 2–5 collect job-preference data that only pays off if the product recommends jobs, and **J1's timing is re-baselined** (§5) because six forms do not fit in three minutes. Both were Zain's decisions, taken after the conflicts were raised. Neither is resolved — NG2 needs a verdict before 1.0, and the 1.1 exit criterion needs measuring against real people.
+>
+> **Amendment — 2026-08-04.** The onboarding wizard is **four steps, not six**, regrouped by who knows the answer rather than by topic: the CV, then everything the CV told us, then everything it cannot say, then the handoff. The same nine columns are collected. Design spec: `docs/superpowers/specs/2026-08-04-onboarding-flow-design.md` — the first this subsystem has had.
+>
+> Changed here: **§5 J1** rewritten and its 3-minute note replaced · **FR-47–FR-50** added, so steps 2–4 have requirements for the first time · **§15** risk row corrected, having still cited the withdrawn 3-minute mitigation · **§7** `profiles` updated with the nine onboarding columns and `cv_prefilled_at`, which it had never described.
+>
+> **NG2 is still unresolved.** Four steps instead of six halves what a stranger pays for data nothing reads, and the copy no longer promises a feed that does not exist. It does not decide whether job discovery is real scope. That verdict is still owed before 1.0.
 >
 > > Withdrawn IDs are retained rather than renumbered, so references from the implementation plans stay resolvable. Privacy rule **P6** and non-goals **NG1–NG4, NG6** are unchanged. The problem statement (§1) and success metrics (§2) are unchanged — M1 still wins any tradeoff.
 
@@ -68,24 +74,31 @@ Stated as hard product boundaries, not "later maybe":
 
 ## 5. Core user journeys
 
-**J1 — First run (re-baselined 2026-08-02: under 3 minutes for the CV gate; up to ~6 minutes for the full wizard).**
-Land on the marketing site → *Create Account* → name, email, password, accept terms → verification email arrives → click through → prompted to upload CV (dashboard is inaccessible until this completes) → CV uploads, text extracted → board appears with six default stages and an empty state pointing at one button: *+ Add job*.
+**J1 — First run (re-baselined 2026-08-04: under 3 minutes for the CV gate; up to ~3 minutes for the remaining steps).**
+Land on the marketing site → *Create Account* → name, email, password, accept terms → verification email arrives → click through → prompted to upload CV (dashboard is inaccessible until this completes) → the upload narrates itself as it works: file read, text found, saved, understood → *Here's what we read* pre-filled with roles, skills and experience, to correct → *What are you looking for?* for career goal, location and salary → *Your profile is set*, summarising what was read → board appears with six default stages and an empty state pointing at one button: *+ Add job*.
 *Alternate entry:* *Continue with Google* skips password creation and email verification, landing directly on the CV gate.
 *Returning user who forgot their password:* sign in → *Forgot password?* → recovery email → set a new password → dashboard (FR-42).
 
-**Note on the 3-minute budget (2026-08-02).** The original figure assumed
-onboarding was one screen: upload a CV, land on the board. The wizard designed
-in `references/onboarding` is **six mandatory steps**, and six forms cannot be
-completed in three minutes by someone reading them properly. Zain reaffirmed
-all six as required after the conflict was raised, so the target is re-based
-rather than quietly missed: **the CV gate (step 1) keeps the under-3-minutes
-budget**, and the full wizard is allowed ~6. Mitigations in scope: the AI
-pre-fills steps 3–4 so the fast path is confirmation rather than typing, and
-each step persists on submit so a drop-off resumes instead of restarting.
+**Note on the budget (2026-08-04, replacing the 2026-08-02 note).** The original
+3-minute figure assumed onboarding was one screen. The six-step wizard could not
+meet it, and the 2026-08-02 amendment re-based the total to ~6 minutes rather
+than miss it quietly. Four steps bring that back to roughly half: two of the six
+steps were one or two controls each, and two more were AI-pre-filled
+confirmations that now share a single screen. **The CV gate (step 1) keeps the
+under-3-minutes budget**; the rest is allowed ~3.
 
-This puts real pressure on the **1.1 exit criterion** — "someone other than
-Zain completes J1 unaided". Measure it before inviting anyone; if strangers
-drop out mid-wizard, making steps 2–5 skippable is the first thing to try.
+Mitigations in scope, unchanged in intent: the AI pre-fills step 2 so the fast
+path is confirmation rather than typing, and each step persists on submit so a
+drop-off resumes instead of restarting. Added: the extraction wait is narrated
+with the pipeline's real stages rather than a spinner, because it is the longest
+silence in the product and it lands while a first-time user is deciding whether
+the thing works.
+
+This still bears on the **1.1 exit criterion** — "someone other than Zain
+completes J1 unaided". Measure it before inviting anyone. If strangers still
+drop out mid-wizard, making steps 2–3 skippable is the next thing to try; the
+regrouping reduces the cost of those steps but does not remove it, because
+NG2 remains unresolved and nothing yet reads what they collect.
 
 **J2 — Log a job (the highest-frequency action; target <60s).**
 Click *+ Add job* → paste URL → system fetches and extracts company, title, location, work mode, salary, description, requirements → card appears in *Saved* → optionally run gap analysis.
@@ -127,6 +140,17 @@ Each requirement has acceptance criteria. `MUST` = Phase 1 blocking.
 | FR-7 | MUST extract and cache CV text on upload | `cvs.extracted_text` is populated. A scanned/image-only PDF still yields text (handled by model vision, not OCR tooling). |
 | FR-8 | MUST support multiple CVs with one marked primary | User can upload additional CVs, switch which is primary, and delete a non-primary CV. Deleting the only CV re-triggers the gate. |
 | FR-9 | MUST let the user view and download their own CV | Download served via a short-lived signed URL, never a public object URL. |
+
+### 6.2a Onboarding steps 2–4
+
+Added 2026-08-04. These steps shipped in `a6e3141` with no requirement of any kind; §6.2 above covered only the CV gate. Design: `docs/superpowers/specs/2026-08-04-onboarding-flow-design.md`.
+
+| ID | Requirement | Acceptance criteria |
+|---|---|---|
+| FR-47 | MUST let the user correct everything the CV produced, in one place | Step 2 shows target roles, skills and years of experience, all pre-filled from the extraction and all editable. At least one role is required; skills may be empty, because a CV need not list any. Experience is banded, and a precise figure the model read still displays in the right band. |
+| FR-48 | MUST NOT claim a pre-fill that did not happen | Step 2's subtitle is conditional on `profiles.cv_prefilled_at`, which is set only when the model returned something non-empty. A provider outage, or a model answer with no facts in it, yields "We couldn't pull details from your CV, so add them here" — never "Here's what we read" above empty fields. |
+| FR-49 | MUST report the upload's real progress, not a placeholder | Each stage the user sees corresponds to a boundary actually crossed server-side (file read, text found, saved, understood) and is emitted when it is crossed. Reporting stops at the boundary that failed, so nothing is claimed that did not happen. A model failure resolves neutrally rather than as an error, because it does not block onboarding. |
+| FR-50 | MUST work without JavaScript, on every step | Each step posts a Server Action passed by reference. Step 1's enhanced path takes the submit over only once the page is running and can stream; otherwise the plain form post does the same work through the same pipeline. |
 
 ### 6.3 Board and stages
 
@@ -196,11 +220,22 @@ Phase 3 is deferred for a substantive reason, not convenience: pattern analysis 
 
 Every table except `profiles` carries `user_id uuid references auth.users`, with row-level security `using (auth.uid() = user_id)`. `profiles` keys on `id` directly.
 
+`onboarding_step` is constrained to `1..4` and records the **furthest step reached**, not where the user is standing — going back to correct something must not rewind it, or the gate would refuse steps already finished. `role` stays unwritable by a column grant, not a policy (FR-45); `cvs.extracted_text` and `char_count` are writable on INSERT but absent from the UPDATE grant, so the server action can persist them under the user's own RLS with no elevated client.
+
 ```
 profiles    id → auth.users, full_name, role, accepted_terms_at,
-            onboarding_complete, created_at
+            onboarding_complete, onboarding_step, created_at,
+            -- collected by onboarding steps 2-3. Nothing reads these yet:
+            -- they pay off only if NG2 is withdrawn (§3).
+            target_roles text[], skills text[], years_experience,
+            career_goal, work_location, salary_period, salary_target,
+            salary_currency,
+            -- set only when the model actually returned facts from the CV.
+            -- Step 2's copy keys off it, so a provider outage cannot leave
+            -- "Here's what we read" sitting above empty fields (FR-48).
+            cv_prefilled_at
 cvs         id, user_id, storage_path, file_name, extracted_text,
-            is_primary, created_at
+            char_count, is_primary, created_at
 stages      id, user_id, name, position, color, is_terminal
 jobs        id, user_id, stage_id, position, source_url, company, title,
             location, work_mode, salary_text, description_md,
@@ -394,7 +429,7 @@ Deployment: three Vercel projects, one repo; preview environments are staging
 | Prompt-cache regression silently multiplies cost | Medium — invisible until the bill | Automated test on prompt-prefix stability; cache-read verification in the manual smoke check |
 | AI output feels generic and gets ignored (M5 collapses) | Medium | FR-33: every gap must cite posting text. Non-citing output is a defect, not a quality nit. |
 | Feature creep back toward the full five-subsystem vision | High — it's what makes this never ship | Phasing in §14 with concrete exit criteria; NG1–NG6 as hard boundaries |
-| Friends bounce on first run | Medium | J1 under 3 minutes is a requirement; 1.1 exit criterion is unaided completion by someone else |
+| Friends bounce on first run | Medium | **Corrected 2026-08-04** — this row still cited "J1 under 3 minutes is a requirement" after §5 had re-based the total to ~6, so the mitigation named a target that no longer existed. Now: four steps, ~3 minutes for the CV gate and ~3 for the rest (§5); each step persists so a drop-off resumes; the upload narrates its own progress rather than showing a spinner. 1.1 exit criterion is unaided completion by someone else. If it still fails, steps 2–3 become skippable. |
 | **Public signup makes AI cost unbounded** (added 2026-08-01) | **High — the operator pays, with no billing and no cap** | NFR-11 is blocking before any AI feature ships. Phase 0.9 contains no AI calls, so the risk is scheduled, not live. Revisit whether billing is needed before 1.0 opens beyond a handful of users. |
 | Transactional email undeliverable at signup volume | High — three of five auth screens depend on it | NFR-13: dedicated SMTP provider from the start. Supabase's built-in sender caps at a few messages per hour and would fail on day one. |
 | Abuse of public signup (throwaway accounts, scripted registration) | Medium | Email verification gates dashboard access (FR-43); Supabase Auth rate limits stand in front of signup. Not fully mitigated — accepted for 0.9, revisit before 1.1. |
