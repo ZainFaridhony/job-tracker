@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "smoke": "vitest run --config vitest.smoke.config.ts"
+    "smoke": "vitest run --config vitest.smoke.config.ts",
+    "eval": "vitest run --config vitest.eval.config.ts"
   },
   "dependencies": {
     "@job-tracker/config": "workspace:*"
