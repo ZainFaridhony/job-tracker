@@ -14,6 +14,18 @@ describe('extractText', () => {
     expect(r.chars).toBeGreaterThan(MIN_USEFUL_CHARS)
   })
 
+  it('gives pdf.js the Math.sumPrecise it expects before parsing a font', async () => {
+    // unpdf's pdf.js calls Math.sumPrecise in glyph-table getSize(). No Node ships
+    // it yet, and pdf.js swallows the TypeError — so the symptom is not a failure
+    // but a font it could not rebuild, and characters it may then map wrongly.
+    // Asserting on the extraction path, not on the polyfill in isolation, because
+    // the thing that breaks is the wiring.
+    delete Math.sumPrecise
+    const r = await extractText(fixture('text-cv.pdf'), PDF_MIME)
+    expect(r.ok).toBe(true)
+    expect(typeof Math.sumPrecise).toBe('function')
+  })
+
   it('reports no-text-layer for a scanned PDF rather than pretending it worked', async () => {
     const r = await extractText(fixture('scanned-cv.pdf'), PDF_MIME)
     expect(r.ok).toBe(false)

@@ -53,6 +53,7 @@ export type Database = {
           accepted_terms_at: string | null
           career_goal: string | null
           created_at: string
+          cv_prefilled_at: string | null
           full_name: string | null
           id: string
           onboarding_complete: boolean
@@ -70,6 +71,7 @@ export type Database = {
           accepted_terms_at?: string | null
           career_goal?: string | null
           created_at?: string
+          cv_prefilled_at?: string | null
           full_name?: string | null
           id: string
           onboarding_complete?: boolean
@@ -87,6 +89,7 @@ export type Database = {
           accepted_terms_at?: string | null
           career_goal?: string | null
           created_at?: string
+          cv_prefilled_at?: string | null
           full_name?: string | null
           id?: string
           onboarding_complete?: boolean

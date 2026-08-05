@@ -98,4 +98,41 @@ describe('ChipField', () => {
 
     expect(submitted(container, 'skills')[0]).toHaveLength(60)
   })
+
+  it('renders chips filled, matching the skills picker they now share a card with', () => {
+    render(<ChipField name="roles" label="Roles" initial={['Backend Engineer']} />)
+    const cls = screen.getByRole('button', { name: 'Remove Backend Engineer' }).className
+    // Outlined-vs-filled was the visible inconsistency between step 3 and step 4
+    // of the six-step wizard. Roles and skills sit together now, so they agree —
+    // on the filled treatment, which is the one that reads in a monochrome
+    // palette. It also retires an outline-subtle border on a focusable control.
+    expect(cls).toContain('bg-ink')
+    expect(cls).toContain('text-text-on-ink')
+    expect(cls).not.toContain('border-outline-subtle')
+  })
+
+  it('gives a chip a visible focus ring of its own', () => {
+    render(<ChipField name="roles" label="Roles" initial={['A']} />)
+    const cls = screen.getByRole('button', { name: 'Remove A' }).className
+    expect(cls).toContain('focus-visible:outline-ink')
+    expect(cls).toContain('focus-visible:outline-offset-2')
+  })
+
+  it('puts a validation message with the field, not at the top of the card', () => {
+    render(
+      <ChipField name="target_roles" label="Roles" initial={[]} error="Keep at least one role." />,
+    )
+    const message = screen.getByRole('alert')
+    expect(message).toHaveTextContent('Keep at least one role.')
+    // Announced with the control, not just placed near it.
+    expect(screen.getByLabelText('Add to Roles')).toHaveAttribute(
+      'aria-describedby',
+      message.getAttribute('id'),
+    )
+  })
+
+  it('renders no alert region when there is no error', () => {
+    render(<ChipField name="roles" label="Roles" initial={['A']} />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
 })

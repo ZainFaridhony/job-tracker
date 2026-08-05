@@ -20,7 +20,13 @@ body {
 }
 
 /* Honour the OS setting. Entrances become instant rather than absent, so
-   nothing that animates in is left invisible. */
+   nothing that animates in is left invisible.
+
+   Transitions are restricted rather than removed. The setting is about movement,
+   and zeroing every transition-duration also stripped the colour and border
+   feedback that carries hover, focus and validation state — affordances a
+   reduced-motion user needs as much as anyone. Narrowing transition-property
+   instead stops transforms and sizes from animating while a fade still fades. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -28,7 +34,8 @@ body {
     animation-duration: 0.01ms !important;
     animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-property: color, background-color, border-color, outline-color, fill,
+      stroke, opacity !important;
     scroll-behavior: auto !important;
   }
 }

@@ -1,11 +1,13 @@
 import mammoth from 'mammoth'
 import { extractText as extractPdfText, getDocumentProxy } from 'unpdf'
+import { DOCX_MIME, MAX_BYTES, PDF_MIME } from './limits'
+import { installMathSumPrecise } from './math-sum-precise'
 
-export const PDF_MIME = 'application/pdf'
-export const DOCX_MIME =
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-
-export const MAX_BYTES = 10 * 1024 * 1024
+// Re-exported so existing server-side importers keep one source. The
+// definitions live in ./limits, which the upload form also imports — this
+// module cannot be imported from the browser because mammoth and unpdf are
+// server-only parsers.
+export { DOCX_MIME, MAX_BYTES, PDF_MIME }
 
 /**
  * Below this a file is treated as having no usable text. It matches
@@ -54,6 +56,9 @@ export async function extractText(
   let raw: string
   try {
     if (mimeType === PDF_MIME) {
+      // Before pdf.js touches a font table. Installed here rather than at import
+      // time so it cannot be defeated by module ordering.
+      installMathSumPrecise()
       const doc = await getDocumentProxy(new Uint8Array(buffer))
       const { text } = await extractPdfText(doc, { mergePages: true })
       raw = Array.isArray(text) ? text.join('\n') : text

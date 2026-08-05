@@ -1,17 +1,10 @@
 import { notFound, redirect } from 'next/navigation'
 import { WizardShell } from '@job-tracker/ui'
 import { createServerSupabase } from '@job-tracker/db/server'
+import { ResumeForm } from '@/components/resume-upload'
 import { onboardingRedirect } from '@/lib/onboarding/gate'
-import { stepBySlug, TOTAL_STEPS } from '@/lib/onboarding/steps'
-import {
-  DoneForm,
-  GoalForm,
-  ResumeForm,
-  RolesForm,
-  SkillsForm,
-  WorkForm,
-  type Profile,
-} from './forms'
+import { slugForStep, stepBySlug, STEPS, TOTAL_STEPS } from '@/lib/onboarding/steps'
+import { DoneForm, PreferencesForm, ProfileForm, type CvFacts, type Profile } from './forms'
 
 export const metadata = { title: 'Get started · Job Tracker AI' }
 
@@ -32,7 +25,7 @@ export default async function OnboardingStepPage({
   const { data: profile } = await supabase
     .from('profiles')
     .select(
-      'career_goal, target_roles, skills, years_experience, work_location, salary_period, salary_target, onboarding_step, onboarding_complete',
+      'career_goal, target_roles, skills, years_experience, work_location, salary_period, salary_target, salary_currency, onboarding_step, onboarding_complete, cv_prefilled_at',
     )
     .eq('id', userId as string)
     .maybeSingle()
@@ -55,16 +48,46 @@ export default async function OnboardingStepPage({
     work_location: profile.work_location,
     salary_period: profile.salary_period,
     salary_target: profile.salary_target,
+    salary_currency: profile.salary_currency,
   }
 
+  // Only the last step shows what the CV contributed, and only it pays for the
+  // extra query. Deliberately not selecting extracted_text: char_count is all
+  // the summary needs, and the text itself is dense PII (P1/P3).
+  let cv: CvFacts = null
+  if (step.slug === 'done') {
+    const { data: row } = await supabase
+      .from('cvs')
+      .select('file_name, char_count')
+      .eq('user_id', userId as string)
+      .eq('is_primary', true)
+      .maybeSingle()
+    if (row) cv = { fileName: row.file_name, chars: row.char_count }
+  }
+
+  // "Here's what we read" is a lie over empty fields, which is what a Groq
+  // outage leaves behind. cv_prefilled_at records whether the model actually
+  // returned anything, so the copy follows the event rather than the field
+  // values — which the user may since have edited by hand.
+  const sub =
+    step.slug === 'profile' && !profile.cv_prefilled_at ? step.subNoPrefill : step.sub
+
+  // Undefined on step 1, where there is nothing behind. Each form renders it
+  // beside its own submit button, so the two directions sit together.
+  const backHref = step.n > 1 ? `/onboarding/${slugForStep(step.n - 1)}` : undefined
+
   return (
-    <WizardShell step={step.n} total={TOTAL_STEPS} title={step.title} sub={step.sub}>
-      {step.slug === 'resume' && <ResumeForm />}
-      {step.slug === 'goals' && <GoalForm profile={p} />}
-      {step.slug === 'roles' && <RolesForm profile={p} />}
-      {step.slug === 'skills' && <SkillsForm profile={p} />}
-      {step.slug === 'work' && <WorkForm profile={p} />}
-      {step.slug === 'done' && <DoneForm profile={p} />}
+    <WizardShell
+      step={step.n}
+      total={TOTAL_STEPS}
+      steps={STEPS}
+      title={step.title}
+      sub={sub}
+    >
+      {step.slug === 'resume' && <ResumeForm backHref={backHref} />}
+      {step.slug === 'profile' && <ProfileForm profile={p} backHref={backHref} />}
+      {step.slug === 'preferences' && <PreferencesForm profile={p} backHref={backHref} />}
+      {step.slug === 'done' && <DoneForm profile={p} cv={cv} backHref={backHref} />}
     </WizardShell>
   )
 }
