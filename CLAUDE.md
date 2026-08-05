@@ -8,6 +8,8 @@ The git repo root is `job-tracker/`. **The pnpm/Turborepo root is one level deep
 
 The outer directory holds inputs and history, not code: `docs/` (PRD, specs, plans), `references/` (the design source of truth — finished auth screens and the logo raster), `brand/` (generated SVGs), `.superpowers/` (scratch).
 
+**`references/` is gitignored and will not be in a fresh clone.** It is 4.4MB of exported PNGs and generated HTML that nothing imports, so it lives on the machine that produced it. The design decisions it informed are written down in `docs/superpowers/specs/` — treat those as the durable record and `references/` as a local convenience. It is still present in this repo's history from earlier commits; ignoring it going forward does not remove it from there.
+
 ## Commands
 
 All from `job-tracker/job-tracker/`:

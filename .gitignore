@@ -43,3 +43,10 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Design references — local inputs, not source.
+# 4.4MB of PNG screenshots and generated HTML that nothing imports and no test
+# reads. They stay on disk as the design source of truth; git is the wrong place
+# for binaries that are re-exported rather than edited.
+# Already in this repo's history, so ignoring them does not remove them from it.
+references/
