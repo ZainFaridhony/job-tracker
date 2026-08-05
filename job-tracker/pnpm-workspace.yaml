@@ -1,0 +1,28 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# sharp: Next.js image optimisation. unrs-resolver: eslint module resolution.
+# Both are native binaries and need their install scripts to run.
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+  supabase: true
+
+minimumReleaseAgeExclude:
+  - '@turbo/darwin-64@2.10.8'
+  - '@turbo/darwin-arm64@2.10.8'
+  - '@turbo/linux-64@2.10.8'
+  - '@turbo/linux-arm64@2.10.8'
+  - '@turbo/windows-64@2.10.8'
+  - '@turbo/windows-arm64@2.10.8'
+  - turbo@2.10.8
+  - '@supabase/cli-darwin-arm64@2.111.0'
+  - '@supabase/cli-darwin-x64@2.111.0'
+  - '@supabase/cli-linux-arm64-musl@2.111.0'
+  - '@supabase/cli-linux-arm64@2.111.0'
+  - '@supabase/cli-linux-x64-musl@2.111.0'
+  - '@supabase/cli-linux-x64@2.111.0'
+  - '@supabase/cli-windows-arm64@2.111.0'
+  - '@supabase/cli-windows-x64@2.111.0'
+  - supabase@2.111.0

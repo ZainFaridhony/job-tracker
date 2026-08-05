@@ -1,0 +1,73 @@
+/*
+ * Design tokens. Mirrored in src/tokens.ts, which is what the contrast tests
+ * read - change both together. Derivation and accessibility rationale live in
+ * PRD Appendix A.
+ *
+ * Motion durations and easings are taken from the reference designs rather
+ * than invented: expo-out for entrances, a slight overshoot for the mark.
+ * Every animation ends in "both" so an element holds its from-state until its
+ * delay elapses; without that, a staggered entrance flickers.
+ *
+ * Keep this file to plain declarations and keyframes. Prose comments inside
+ * the @theme block break the dev pipeline's PostCSS parser even though the
+ * production build tolerates them.
+ */
+@theme {
+  --color-ink-pressed: #181818;
+  --color-ink: #1e1e1e;
+  --color-ink-hover: #2a2a2a;
+
+  --color-text: #1e1e1e;
+  --color-text-muted: #5c5c5c;
+  --color-text-subtle: #6f6f6f;
+  --color-text-on-ink: #ffffff;
+
+  --color-canvas: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f4f4f4;
+  --color-surface-inverse: #1e1e1e;
+
+  /* Two line tokens, deliberately. `outline` clears WCAG 1.4.11 (3:1) and is
+     for anything focusable; `outline-subtle` is decorative dividers only.
+     Using outline-subtle on a control is a defect, not a style choice. */
+  --color-outline: #8a8a8a;
+  --color-outline-subtle: #e4e4e4;
+
+  --color-error: #ba1a1a;
+  --color-error-surface: #ffdad6;
+  --color-text-on-error-surface: #93000a;
+
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --font-sans: Geist, ui-sans-serif, system-ui, sans-serif;
+
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-overshoot: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  --animate-rise: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade: fade 0.8s ease-out both;
+  --animate-pop: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  /* Horizontal grow, for a progress segment filling on arrival. Needs origin-left. */
+  --animate-fill: fill 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}

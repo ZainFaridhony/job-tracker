@@ -1,8 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" fill="none" role="img" aria-label="Job Tracker">
-  <rect width="88" height="88" rx="22" fill="#1F2A24"/>
-  <path d="M26 58 C26 58 28 34 44 28 C60 22 62 40 62 40" stroke="#C8D5C3" stroke-width="5.5" stroke-linecap="round"/>
-  <circle cx="26" cy="58" r="5.5" fill="#8FAE8B"/>
-  <circle cx="44" cy="28" r="5.5" fill="#8FAE8B"/>
-  <circle cx="62" cy="40" r="7.5" fill="#E8F0E4"/>
-  <circle cx="62" cy="40" r="3.2" fill="#1F2A24"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 556 766" role="img" aria-label="Job Tracker AI">
+  <title>Job Tracker AI</title>
+  <path fill="currentColor" d="M0 66A66 66 0 0 1 66 0L490 0A66 66 0 0 1 556 66L556 208.15A60 60 0 0 1 538.43 250.57L311.16 477.84A8 8 0 0 0 311.16 489.16L539.92 717.92A28 28 0 0 1 512.31 764.61L146.11 658.29A6 6 0 0 0 140.19 659.81L58.04 741.96A34 34 0 0 1 0 717.92L0 66Z"/>
+  <path fill="#FFFFFF" opacity="0.055" d="M0 190L305 483L142 657L0 700Z"/>
+  <path fill="#FFFFFF" opacity="0.055" d="M305 483L500 730L143 657Z"/>
 </svg>

@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@import "@job-tracker/config/theme.css";
+
+/* Keyframes and the data-open:/data-closed: variants the shadcn components'
+   class names are written against. Colour and radius do NOT come from here —
+   see the alias block below. */
+@import "shadcn/tailwind.css";
+@import "tw-animate-css";
+
+/* Class-based rather than the media query, so `dark:` never fires: this app has
+   no dark mode and nothing sets .dark. */
+@custom-variant dark (&:is(.dark *));
+
+/* Tailwind 4 only generates classes it can actually see, and workspace packages
+   sit outside the app root. Without this, every @job-tracker/ui component
+   renders unstyled — and it fails silently, because the classes are simply
+   never emitted. */
+@source "../../../packages/ui/src";
+
+@theme inline {
+  /* Geist is loaded by next/font in layout.tsx; bind the tokens to its
+     variables. `shadcn init` rewrites this to `var(--font-sans)`, which is
+     circular and silently drops the font — restore it after any re-init. */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-geist-sans);
+
+  /*
+   * shadcn's components are written against its own colour vocabulary. Alias
+   * that vocabulary onto ours instead of shipping the second oklch palette
+   * `init` generates: one source of truth for the values — theme.css, which the
+   * contrast tests in packages/config read — and two names for them.
+   *
+   * These names are for the vendored components in components/ui only. Our own
+   * components use the project tokens directly.
+   *
+   * Deliberately absent: --radius-*. `init` redefines the whole radius scale
+   * from its own --radius, which silently reshapes every rounded-* in the app.
+   * theme.css owns that scale.
+   */
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-text);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-text);
+  --color-primary: var(--color-ink);
+  --color-primary-foreground: var(--color-text-on-ink);
+  --color-secondary: var(--color-surface-subtle);
+  --color-secondary-foreground: var(--color-text);
+  --color-muted: var(--color-surface-subtle);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-accent: var(--color-surface-subtle);
+  --color-accent-foreground: var(--color-text);
+  --color-destructive: var(--color-error);
+  /* border-border is decorative; border-input bounds a control and so must
+     clear WCAG 1.4.11 at 3:1. Same distinction theme.css draws. */
+  --color-border: var(--color-outline-subtle);
+  --color-input: var(--color-outline);
+  --color-ring: var(--color-ink);
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Honour the OS setting. Entrances become instant rather than absent, so
+   nothing that animates in is left invisible.
+
+   Transitions are restricted rather than removed. The setting is about movement,
+   and zeroing every transition-duration also stripped the colour and border
+   feedback that carries hover, focus and validation state — affordances a
+   reduced-motion user needs as much as anyone. Narrowing transition-property
+   instead stops transforms and sizes from animating while a fade still fades. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-property: color, background-color, border-color, outline-color, fill,
+      stroke, opacity !important;
+    scroll-behavior: auto !important;
+  }
+}

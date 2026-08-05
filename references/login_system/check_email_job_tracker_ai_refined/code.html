@@ -1,0 +1,250 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Check your inbox - Job Tracker AI</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Custom Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c8c6c5",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-primary-fixed": "#1c1b1b",
+                        "inverse-primary": "#c8c6c5",
+                        "surface-tint": "#5f5e5e",
+                        "error": "#ba1a1a",
+                        "outline": "#747878",
+                        "background": "#ffffff",
+                        "surface-dim": "#dadada",
+                        "primary-container": "#1c1b1b",
+                        "inverse-surface": "#2f3131",
+                        "surface-bright": "#f9f9f9",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-surface-variant": "#444748",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1a1c1c",
+                        "secondary-container": "#dce2f3",
+                        "on-primary-container": "#858383",
+                        "primary": "#000000",
+                        "on-primary-fixed-variant": "#474646",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#000000",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#838484",
+                        "surface-container": "#eeeeee",
+                        "on-secondary-container": "#5e6572",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1a1c1c",
+                        "tertiary-container": "#1a1c1c",
+                        "surface-container-high": "#e8e8e8",
+                        "secondary": "#585f6c",
+                        "outline-variant": "#c4c7c7",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed": "#151c27",
+                        "secondary-fixed": "#dce2f3",
+                        "on-secondary-fixed-variant": "#404754",
+                        "surface-container-low": "#f3f3f4",
+                        "primary-fixed": "#e5e2e1",
+                        "inverse-on-surface": "#f0f1f1",
+                        "surface-variant": "#e2e2e2",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#ffffff",
+                        "secondary-fixed-dim": "#c0c7d6",
+                        "on-error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "48px",
+                        "stack-lg": "32px",
+                        "container-max": "1200px",
+                        "gutter": "24px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "display": ["Geist", "sans-serif"],
+                        "body-md": ["Geist", "sans-serif"],
+                        "headline-md": ["Geist", "sans-serif"],
+                        "headline-lg": ["Geist", "sans-serif"],
+                        "label-sm": ["Geist", "sans-serif"],
+                        "display-mobile": ["Geist", "sans-serif"],
+                        "body-lg": ["Geist", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-mobile": ["36px", { "lineHeight": "1.1", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Geist Font Fallback Setup */
+        @font-face {
+            font-family: 'Geist';
+            src: local('Helvetica Neue'), local('Arial'), sans-serif;
+            unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        }
+
+        .dot-pattern {
+            background-image: radial-gradient(var(--tw-colors-outline-variant) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.4;
+        }
+
+        /* Sophisticated Entrance Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .animate-slide-up {
+            opacity: 0;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+
+        /* Premium Shadow for Card */
+        .premium-shadow {
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md h-screen w-screen overflow-hidden flex flex-col md:flex-row antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Left Side: Hero Section (55%) -->
+<div class="hidden md:flex flex-col relative w-[55%] h-full bg-surface border-r border-outline-variant/30 z-10 animate-fade-in">
+<!-- Dot Texture Background -->
+<div class="absolute inset-0 dot-pattern pointer-events-none z-0" style="background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.1) 1px, transparent 0); background-size: 24px 24px;"></div>
+<!-- Logo Header -->
+<div class="absolute top-0 left-0 w-full p-margin-desktop z-20">
+<div class="flex items-center justify-center w-10 h-10"><img alt="Job Tracker AI Logo" class="w-10 h-10 object-contain rounded-md drop-shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD19sX7DO5SdEZQhI6vmuD0cS1q2wTOhC_ALSJaCA79aODm7x-xH94UFeOLZF__YtK8A-e0gfXuLPEs6ky-AARalzGJRV_YMAruX-7rcp-rdEETqu-DU4v2C2jstnmxSiQjdhXkpDSAeOAK2WEOc25IRkDHDmmPeILt4dyVcQTjTXZBFpuPIIn9xbiOqn8t5dbFCYpw-XUdeI3iJllU6hiLb3qUupo79xX7StZJpsoGrkyVDvEV8Rxx9yheYrd38rZV2A"></div>
+</div>
+<!-- Illustration Area (Centered) -->
+<div class="flex-1 flex items-center justify-center relative z-10 p-margin-desktop mt-16"><!-- Dashboard Mockup (Background Graphic) -->
+<div class="absolute right-[-5%] top-[55%] -translate-y-1/2 w-[85%] h-[65%] bg-surface-container-lowest rounded-l-3xl shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-outline-variant/30 flex flex-col z-0 overflow-hidden">
+<!-- Mock Header -->
+<div class="h-14 border-b border-outline-variant/20 flex items-center px-6 gap-2 bg-surface-bright/50 backdrop-blur-md">
+<div class="w-3 h-3 rounded-full bg-outline-variant/40"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant/40"></div>
+<div class="w-3 h-3 rounded-full bg-outline-variant/40"></div>
+<div class="ml-4 h-6 w-48 bg-surface-container rounded-md"></div>
+</div>
+<!-- Mock Body -->
+<div class="flex-1 p-8 flex gap-8 bg-surface-bright/30">
+<!-- Sidebar -->
+<div class="w-40 flex flex-col gap-4">
+<div class="h-5 bg-surface-variant rounded-md w-full"></div>
+<div class="h-5 bg-surface-container rounded-md w-3/4"></div>
+<div class="h-5 bg-surface-container rounded-md w-5/6"></div>
+<div class="h-5 bg-surface-container rounded-md w-2/3"></div>
+</div>
+<!-- Content Area -->
+<div class="flex-1 flex flex-col gap-6">
+<div class="flex gap-4">
+<div class="h-28 flex-1 bg-surface-container-low rounded-xl border border-outline-variant/20"></div>
+<div class="h-28 flex-1 bg-surface-container-low rounded-xl border border-outline-variant/20"></div>
+<div class="h-28 flex-1 bg-surface-container-low rounded-xl border border-outline-variant/20"></div>
+</div>
+<div class="flex-1 bg-surface-container-low rounded-xl border border-outline-variant/20"></div>
+</div>
+</div>
+</div>
+<!-- Floating Glassmorphism Elements -->
+<!-- AI Match Card -->
+<div class="absolute top-[28%] right-[45%] bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-2xl p-5 w-56 z-10 flex flex-col gap-2 transform -rotate-2 hover:rotate-0 transition-transform duration-500">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<svg class="w-3.5 h-3.5" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>
+</div>
+<span class="text-xs font-semibold text-primary uppercase tracking-wider">AI Insight</span>
+</div>
+<div class="text-3xl font-bold text-primary tracking-tight">94% Match</div>
+<div class="text-xs text-secondary">Strong fit for Sr. Product Designer role at TechCorp.</div>
+</div>
+<!-- Kanban Status Card -->
+<div class="absolute bottom-[22%] right-[15%] bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-2xl p-5 w-64 z-10 flex flex-col gap-3 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-secondary uppercase tracking-wider">Status Update</span>
+<span class="text-[10px] font-medium bg-green-100 text-green-800 border border-green-200 px-2.5 py-1 rounded-full">Interviewing</span>
+</div>
+<div>
+<div class="text-base font-semibold text-primary">Google</div>
+<div class="text-sm text-secondary">UX Engineer</div>
+</div>
+<div class="text-xs text-secondary flex items-center gap-1.5 mt-1">
+<svg class="w-3.5 h-3.5" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v3"></path><path d="M16 2v3"></path><rect height="18" rx="2" width="18" x="3" y="3"></rect><path d="M3 9h18"></path></svg> Tomorrow, 10:00 AM
+            </div>
+</div>
+<!-- Text Content -->
+<div class="max-w-md z-20 relative mt-auto mb-stack-lg bg-surface-container-lowest/50 backdrop-blur-sm p-6 rounded-2xl -ml-6">
+<h1 class="font-display text-display text-primary mb-stack-md leading-tight">Land your dream role faster.</h1>
+<p class="font-body-lg text-body-lg text-secondary">
+                Automate your job search, tailor your applications instantly, and track every interview with AI precision.
+            </p>
+</div></div>
+</div>
+<!-- Right Side: Auth Card Area (45% / 100% on Mobile) -->
+<div class="w-full md:w-[45%] h-full flex flex-col justify-center items-center relative bg-surface p-margin-mobile md:p-margin-desktop overflow-y-auto">
+<!-- Mobile Logo (Hidden on Desktop) -->
+<div class="md:hidden absolute top-0 left-0 w-full p-margin-mobile flex justify-center z-20">
+<div class="flex items-center justify-center w-8 h-8 animate-slide-up"><img alt="Job Tracker AI Logo" class="w-8 h-8 rounded-md object-contain shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd5P_-j0GawHcyv0F6LK2cIhzmDxlUyH6EzIeed8weaAZUxKiXgehcKhMhusUdD3TA5byOeRVmA9CjkDQhdMXvuiRkvi3vm-VPBQB_nK0e6FXU0OBbSNmQD0fZTK9N4BjeF9-xRNgpqGb-npqC_7ifQ_nrCX6gtfrgE84wafa8XI8Ni7zCEvycX6DlyiI7LyiwAq4U3Esodk-JazmEPOWKqp3AdXaw2Y_JzT0h8hKoqDR_EW1-0HqXtDMKXf17b4CbBw"></div>
+</div>
+<!-- The Card -->
+<div class="w-full max-w-[420px] bg-surface-container-lowest rounded-[24px] premium-shadow border border-outline-variant/50 p-stack-lg flex flex-col items-center text-center relative z-10 animate-slide-up delay-100 mt-16 md:mt-0">
+<!-- Icon -->
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center mb-stack-md animate-slide-up delay-200">
+<span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings: 'FILL' 0;">mail</span>
+</div>
+<!-- Headers -->
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2 animate-slide-up delay-300">Check your inbox</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-stack-lg animate-slide-up delay-300">
+                We've sent a password reset link to <span class="font-medium text-primary">you@example.com</span>. Please check your inbox and spam folder.
+            </p>
+<!-- Actions -->
+<div class="w-full flex flex-col gap-stack-sm animate-slide-up delay-400">
+<button class="w-full h-12 bg-primary text-on-primary font-label-sm text-label-sm rounded-lg flex justify-center items-center transition-all duration-200 hover:bg-on-primary-fixed-variant active:scale-[0.98]">
+                    Resend Email
+                </button>
+</div>
+<!-- Back to Login Link -->
+<a class="mt-stack-lg flex items-center gap-2 text-secondary font-label-sm text-label-sm hover:text-primary transition-colors duration-200 animate-slide-up delay-400 group" href="#">
+<span class="material-symbols-outlined text-[16px] group-hover:-translate-x-1 transition-transform duration-200">arrow_back</span>
+                Back to Login
+            </a>
+</div>
+</div>
+</body></html>

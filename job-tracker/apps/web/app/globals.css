@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@import "@job-tracker/config/theme.css";
+
+/* Tailwind 4 only generates classes it can actually see, and workspace packages
+   sit outside the app root. Without this, every @job-tracker/ui component
+   renders unstyled — and it fails silently, because the classes are simply
+   never emitted. */
+@source "../../../packages/ui/src";
+
+/* Geist is loaded by next/font in layout.tsx; bind the tokens to its variables. */
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Honour the OS setting. Entrances become instant rather than absent, so
+   nothing that animates in is left invisible.
+
+   Transitions are restricted rather than removed. The setting is about movement,
+   and zeroing every transition-duration also stripped the colour and border
+   feedback that carries hover, focus and validation state — affordances a
+   reduced-motion user needs as much as anyone. Narrowing transition-property
+   instead stops transforms and sizes from animating while a fade still fades. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-property: color, background-color, border-color, outline-color, fill,
+      stroke, opacity !important;
+    scroll-behavior: auto !important;
+  }
+}

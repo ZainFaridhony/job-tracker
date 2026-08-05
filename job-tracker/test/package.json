@@ -1,0 +1,12 @@
+{
+  "name": "@job-tracker/test",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "vitest run" },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.111.0",
+    "dotenv": "17.2.4",
+    "vitest": "4.1.10"
+  }
+}
