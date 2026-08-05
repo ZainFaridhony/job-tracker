@@ -29,6 +29,25 @@ pnpm --filter dashboard exec vitest run -t 'rejects backslash'
 
 **`dashboard#typecheck` races `dashboard#build`, and it looks like a real error.** `turbo.json` declares `"typecheck": { "dependsOn": ["^build"] }` — the caret means *upstream packages'* build, not the package's own, so the two run concurrently and both touch `apps/dashboard/.next/types/`. `tsc` reads the generated route validator while `next build` is rewriting it, and you get something like `TS2344: Type '"/onboarding/ingest"' does not satisfy the constraint 'AppRouteHandlerRoutes'` for a route that is perfectly fine. Re-run `pnpm --filter dashboard typecheck` alone; if it passes, that was the race. Adding `"build"` to that `dependsOn` would fix it at the cost of serialising the gate.
 
+## Branches
+
+Three tiers, and the direction of travel is one way:
+
+```
+feat/* ─PR─▶ staging ─PR─▶ main
+fix/*  ─┘                  (production)
+```
+
+- **`main` is production.** Protected. It only ever moves through a merged PR from `staging`, or from a `hotfix/*` branch when production is broken and staging is not a safe route. Never commit to it directly.
+- **`staging` is the integration branch.** Every feature lands here first and this is what a staging deploy tracks. It is the default base for a new PR.
+- **`feat/*`, `fix/*`, `chore/*`, `docs/*`** branch off `staging` and PR back into it. One concern per branch.
+
+`hotfix/*` is the only branch that may target `main`, and it must be merged back into `staging` afterwards or the fix is lost on the next release.
+
+**Branch off `staging`, not `main`.** `main` lags by whatever has not shipped, so branching from it means resolving conflicts against work that already exists.
+
+**The full gate runs before a PR, not after.** `pnpm turbo lint typecheck test build` from `job-tracker/job-tracker/`. There is no CI in this repo yet, so nothing else will catch it.
+
 ## Architecture
 
 Three separately deployable Next.js 16 apps over four workspace packages:
