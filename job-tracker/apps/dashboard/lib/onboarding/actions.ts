@@ -5,8 +5,8 @@ import { createServerSupabase } from '@job-tracker/db/server'
 import type { TablesUpdate } from '@job-tracker/db/types'
 import { ingestCv } from '../cv/ingest'
 import { FAILURE_COPY } from '../cv/limits'
+import { readPreferenceFields, readProfileFields } from './fields'
 import { currentUserId, persistStep } from './persist'
-import { DEFAULT_CURRENCY, isCurrency } from './steps'
 
 /**
  * `field` names the control the message belongs to, so the form can render it
@@ -45,56 +45,16 @@ export async function uploadCvAction(_prev: StepState, form: FormData): Promise<
  * bounded because it is an int column.
  */
 export async function saveProfileAction(_prev: StepState, form: FormData): Promise<StepState> {
-  const roles = form.getAll('target_roles').map(String).filter(Boolean)
-  const skills = form.getAll('skills').map(String).filter(Boolean)
-  const yearsRaw = String(form.get('years_experience') ?? '').trim()
-  const years = yearsRaw === '' ? null : Number(yearsRaw)
-
-  if (roles.length === 0) {
-    return { error: 'Keep at least one role, or add your own.', field: 'target_roles' }
-  }
-  if (years !== null && (!Number.isInteger(years) || years < 0 || years > 60)) {
-    return {
-      error: 'Enter years of experience as a whole number between 0 and 60.',
-      field: 'years_experience',
-    }
-  }
-
-  return saveStep(2, { target_roles: roles, skills, years_experience: years })
+  const read = readProfileFields(form)
+  if (!read.ok) return { error: read.error, field: read.field }
+  return saveStep(2, read.values)
 }
 
 /** Step 3 — what the CV cannot say. Every value here is checked against a set. */
 export async function savePreferencesAction(_prev: StepState, form: FormData): Promise<StepState> {
-  const goal = String(form.get('career_goal') ?? '')
-  const location = String(form.get('work_location') ?? '')
-  const period = String(form.get('salary_period') ?? 'yearly')
-  const currency = String(form.get('salary_currency') ?? DEFAULT_CURRENCY)
-  // Digits only. AmountField groups them as you type, and with JavaScript off it
-  // posts whatever was typed, so normalising here is what guarantees the column
-  // holds a number either way. Currency lives in its own column.
-  const target = String(form.get('salary_target') ?? '')
-    .replace(/\D/g, '')
-    .replace(/^0+(?=\d)/, '')
-    .slice(0, 15)
-
-  if (!goal) return { error: 'Pick the one that fits best.', field: 'career_goal' }
-  if (!['remote', 'hybrid', 'onsite'].includes(location)) {
-    return { error: 'Pick a work location.', field: 'work_location' }
-  }
-  if (!['yearly', 'monthly'].includes(period)) {
-    return { error: 'Pick yearly or monthly.', field: 'salary_period' }
-  }
-  // Eight codes is too many to restate here, so this one derives from the list
-  // rather than repeating it. Mirrored by profiles_salary_currency_check.
-  if (!isCurrency(currency)) return { error: 'Pick a currency.', field: 'salary_currency' }
-
-  return saveStep(3, {
-    career_goal: goal,
-    work_location: location,
-    salary_period: period,
-    salary_currency: currency,
-    salary_target: target || null,
-  })
+  const read = readPreferenceFields(form)
+  if (!read.ok) return { error: read.error, field: read.field }
+  return saveStep(3, read.values)
 }
 
 /**
