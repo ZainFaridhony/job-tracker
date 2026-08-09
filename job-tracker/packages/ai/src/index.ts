@@ -1,5 +1,5 @@
 export {
-  createGroqExtractor,
+  createCerebrasExtractor,
   createFakeExtractor,
   MODEL,
   MIN_USEFUL_CHARS,

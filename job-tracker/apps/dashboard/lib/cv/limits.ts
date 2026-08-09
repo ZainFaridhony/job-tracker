@@ -35,7 +35,7 @@ export type IngestFailure =
  * act on but cannot guess at: a text-only model cannot read an image, and
  * "nothing was found" would look like our bug.
  *
- * Never extended with a provider or parser message. A Groq error can echo the
+ * Never extended with a provider or parser message. A Cerebras error can echo the
  * prompt and the prompt is the CV; a PDF parser error can embed document
  * content (P3 — no CV content in logs or error reports).
  */

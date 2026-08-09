@@ -5,7 +5,7 @@ import { DOCX_MIME, PDF_MIME } from './limits'
 
 const extract = vi.fn()
 vi.mock('@job-tracker/ai', () => ({
-  createGroqExtractor: () => ({ extract }),
+  createCerebrasExtractor: () => ({ extract }),
 }))
 
 let uploadError: unknown = null
@@ -88,7 +88,7 @@ describe('ingestCv progress reporting', () => {
   it('resolves the model stage neutrally when the provider fails', async () => {
     extract.mockRejectedValue(new Error('502'))
     const { names, seen, result } = await stagesFor(file('cv.pdf', fixture('text-cv.pdf'), PDF_MIME))
-    // Not an error stage: a Groq outage does not stop onboarding, so it must not
+    // Not an error stage: a Cerebras outage does not stop onboarding, so it must not
     // read to the user as a failure. It reports "nothing to correct" instead.
     expect(names).toContain('understanding')
     expect(seen.at(-1)).toEqual({ stage: 'prefilled', prefilled: false })

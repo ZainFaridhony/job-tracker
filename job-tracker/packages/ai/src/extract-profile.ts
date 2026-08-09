@@ -3,14 +3,54 @@ import { SYSTEM_PROMPT, VERIFY_PROMPT, verifyUserMessage } from './prompt'
 import { parseResponse, PROFILE_JSON_SCHEMA } from './schema'
 import { EMPTY_PROFILE, type ExtractedProfile, type ProfileExtractor } from './types'
 
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
-export const MODEL = 'openai/gpt-oss-120b'
+const CEREBRAS_URL = 'https://api.cerebras.ai/v1/chat/completions'
+
+/**
+ * The same weights this ran on under Groq, which is the point: keeping the model
+ * fixed across the provider move means the eval evidence behind DEFAULT_STRATEGY
+ * still describes what ships. Note the id has no `openai/` prefix here — Groq
+ * namespaces third-party weights, Cerebras does not, and the wrong id is a 404
+ * that reads like an outage.
+ */
+export const MODEL = 'gpt-oss-120b'
 
 /** Enough CV text to be worth sending; below this the file is likely a scan. */
 export const MIN_USEFUL_CHARS = 200
 
 /** Keeps one oversized CV from blowing the context window or the bill. */
 const MAX_CHARS = 24_000
+
+/**
+ * Completion budget, and it has to cover THINKING as well as the answer.
+ *
+ * gpt-oss-120b is a reasoning model and `max_completion_tokens` bounds reasoning
+ * plus content together, not content alone. This was 1600, chosen against the
+ * ~160 tokens of JSON the schema actually produces — which is right about the
+ * answer and forgets the other term entirely.
+ *
+ * Measured, same prompt, same model:
+ *
+ *   repetitive filler, 6.8k chars ->   311 reasoning tokens
+ *   dense synthetic,   2.3k chars ->   925
+ *   a real CV,         5.5k chars -> 1,575   <-- over budget at 1600
+ *
+ * Reasoning scales with how much there is to think about, not with length, so
+ * the old ceiling was never comfortable — it was one dense document away from
+ * failing, and it failed silently: content came back truncated at 72 characters,
+ * `JSON.parse` threw, `callModel` returned null, and the user got "Couldn't read
+ * the details" over a CV the model reads perfectly at a higher budget.
+ *
+ * 4000 leaves ~2.2k of headroom over the worst case observed. It is not simply
+ * set as high as possible because Cerebras meters rate limits on *estimated*
+ * consumption — input tokens plus this number, whether or not they are spent — so
+ * an 8000 budget against a ~3k prompt would bill 11k of the 30k/minute allowance
+ * per call and throttle at under three requests a minute. At 4000 the estimate is
+ * ~7k, which lands just under the 5 requests/minute ceiling that binds first.
+ *
+ * Raising this is safe for correctness and costs throughput. Lowering it risks
+ * the truncation above — which now throws rather than returning empty.
+ */
+const MAX_COMPLETION_TOKENS = 4_000
 
 /** Samples the `vote` strategy takes. Three is the smallest useful majority. */
 const VOTE_SAMPLES = 3
@@ -81,9 +121,37 @@ export type ExtractorOptions = {
 type Message = { role: 'system' | 'user'; content: string }
 
 /**
+ * Cerebras suffixes its rate-limit headers with the window they measure, where
+ * Groq did not: `x-ratelimit-remaining-tokens-minute`, not
+ * `x-ratelimit-remaining-tokens`. Reading the Groq names against Cerebras is not
+ * an error, it is `null` — every 429 would go back to carrying no reason at all,
+ * which is exactly the blindness the ingest logging was added to end.
+ *
+ * Requests are the other window: Cerebras meters those per *day*, not per minute.
+ */
+const TOKENS_REMAINING = 'x-ratelimit-remaining-tokens-minute'
+const TOKENS_LIMIT = 'x-ratelimit-limit-tokens-minute'
+const TOKENS_RESET = 'x-ratelimit-reset-tokens-minute'
+
+/**
+ * Requests are metered too, and on Cerebras they are what actually binds here.
+ *
+ * Measured from this account: 30,000 tokens/minute but only 5 requests/minute.
+ * One extraction is ~3.6k tokens, so tokens allow about eight a minute and
+ * requests stop it at five. Under Groq it was the other way round — 8,000
+ * tokens/minute against a request ceiling nothing here could reach — so a 429
+ * that reported only the token window used to say everything and now says
+ * nothing. `vote` is the sharp edge: three concurrent samples spend three of
+ * the five in one extraction.
+ */
+const REQUESTS_REMAINING = 'x-ratelimit-remaining-requests-minute'
+const REQUESTS_LIMIT = 'x-ratelimit-limit-requests-minute'
+const REQUESTS_RESET = 'x-ratelimit-reset-requests-minute'
+
+/**
  * Rate-limit metadata from a 429, for the error message.
  *
- * Headers only, never the body. A Groq error body can echo the prompt and the
+ * Headers only, never the body. A provider error body can echo the prompt and the
  * prompt is the user's CV (P3), but `retry-after` and the `x-ratelimit-*` family
  * carry no prompt content — they are the account's own limits. Withholding them
  * made a 429 indistinguishable from any other failure, which cost real time
@@ -92,19 +160,24 @@ type Message = { role: 'system' | 'user'; content: string }
 function limitDetail(response: Response): string {
   const parts = [
     ['retry after', response.headers?.get('retry-after')],
-    ['tokens left', response.headers?.get('x-ratelimit-remaining-tokens')],
-    ['token limit', response.headers?.get('x-ratelimit-limit-tokens')],
-    ['resets in', response.headers?.get('x-ratelimit-reset-tokens')],
+    // Both windows, because either can be the one that refused: reporting only
+    // tokens is how a request-limited 429 arrives with no number attached.
+    ['requests left', response.headers?.get(REQUESTS_REMAINING)],
+    ['request limit', response.headers?.get(REQUESTS_LIMIT)],
+    ['tokens left', response.headers?.get(TOKENS_REMAINING)],
+    ['token limit', response.headers?.get(TOKENS_LIMIT)],
+    ['resets in', response.headers?.get(TOKENS_RESET)],
   ].filter(([, v]) => v)
   return parts.length === 0 ? '' : ` (${parts.map(([k, v]) => `${k} ${v}`).join(', ')})`
 }
 
-/** Seconds the server asked us to wait, or null when it did not say. */
-function retryAfterMs(response: Response): number | null {
-  const raw =
-    response.headers?.get('retry-after') ?? response.headers?.get('x-ratelimit-reset-tokens')
+/** Milliseconds to wait as a number of seconds, or null when it is unreadable. */
+function parseSeconds(raw: string | null | undefined): number | null {
   if (!raw) return null
-  // Groq sends either plain seconds or a duration like "7.66s" / "2m59.56s".
+  // Cerebras sends bare seconds as a float ("11.382867097854614"). Groq sent a
+  // duration ("7.66s", "2m59.56s"). This pattern reads both, because the trailing
+  // `s` and the minutes group are each optional — worth keeping that way rather
+  // than narrowing it to today's provider.
   const m = /^(?:(\d+)m)?([\d.]+)s?$/.exec(raw.trim())
   if (!m) return null
   const minutes = Number(m[1] ?? 0)
@@ -113,10 +186,31 @@ function retryAfterMs(response: Response): number | null {
   return Number.isFinite(ms) && ms > 0 ? ms : null
 }
 
+/**
+ * How long to wait before retrying a 429.
+ *
+ * `retry-after` wins when the server sends it. Otherwise take the LONGER of the
+ * two reset windows rather than the first one found: a request-limited 429 whose
+ * token window resets in two seconds would otherwise be retried immediately and
+ * refused again, burning the one retry the user gets on a limit that had not
+ * moved. Waiting for the window that actually refused is the only wait that ends
+ * in an answer.
+ */
+export function retryAfterMs(response: Response): number | null {
+  const explicit = parseSeconds(response.headers?.get('retry-after'))
+  if (explicit !== null) return explicit
+
+  const tokens = parseSeconds(response.headers?.get(TOKENS_RESET))
+  const requests = parseSeconds(response.headers?.get(REQUESTS_RESET))
+  if (tokens === null) return requests
+  if (requests === null) return tokens
+  return Math.max(tokens, requests)
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 /**
- * One Groq call. Returns the raw parsed JSON, or null when the response carried
+ * One Cerebras call. Returns the raw parsed JSON, or null when the response carried
  * nothing usable — a distinction the callers need, because `verify` must keep the
  * first pass rather than replace it with an empty second pass.
  *
@@ -135,7 +229,7 @@ async function callModel(
   let attempt = 0
 
   for (;;) {
-    const response = await fetch(GROQ_URL, {
+    const response = await fetch(CEREBRAS_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -145,7 +239,7 @@ async function callModel(
         model: MODEL,
         messages,
         response_format: { type: 'json_schema', json_schema: PROFILE_JSON_SCHEMA },
-        max_completion_tokens: 1600,
+        max_completion_tokens: MAX_COMPLETION_TOKENS,
         temperature,
       }),
     })
@@ -160,16 +254,37 @@ async function callModel(
 
     if (!response.ok) {
       throw new Error(
-        `Groq request failed with ${response.status}${
+        `Cerebras request failed with ${response.status}${
           response.status === 429 ? limitDetail(response) : ''
         }`,
       )
     }
 
     const body = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
+      choices?: Array<{ finish_reason?: string; message?: { content?: string } }>
+      usage?: { completion_tokens?: number; completion_tokens_details?: { reasoning_tokens?: number } }
     }
-    const content = body.choices?.[0]?.message?.content
+    const choice = body.choices?.[0]
+
+    // Running out of budget is a configuration fault, not an unreadable CV, and
+    // it must not be reported as one. Truncated JSON reaches the `catch` below
+    // and looks identical to a model that answered with nonsense — which is how
+    // a 1600-token ceiling spent entirely on reasoning presented as "we couldn't
+    // read your CV" for a document the model handles fine with more room.
+    //
+    // Counts only: how many tokens were spent and how many of those were
+    // reasoning. No content, so P3 holds and the message is safe to log.
+    if (choice?.finish_reason === 'length') {
+      const spent = body.usage?.completion_tokens ?? MAX_COMPLETION_TOKENS
+      const reasoning = body.usage?.completion_tokens_details?.reasoning_tokens
+      throw new Error(
+        `Cerebras response truncated at ${spent} completion tokens` +
+          (reasoning === undefined ? '' : ` (${reasoning} of them reasoning)`) +
+          ` — raise MAX_COMPLETION_TOKENS, currently ${MAX_COMPLETION_TOKENS}`,
+      )
+    }
+
+    const content = choice?.message?.content
     if (!content) return null
 
     try {
@@ -182,12 +297,12 @@ async function callModel(
 }
 
 /** The real extractor. Plain fetch — the request shape is small and verified. */
-export function createGroqExtractor(
+export function createCerebrasExtractor(
   options: ExtractorOptions | string = {},
 ): ProfileExtractor {
   // A bare string stays valid so existing callers and tests keep working.
   const opts: ExtractorOptions = typeof options === 'string' ? { apiKey: options } : options
-  const apiKey = 'apiKey' in opts ? opts.apiKey : process.env.GROQ_API_KEY
+  const apiKey = 'apiKey' in opts ? opts.apiKey : process.env.CEREBRAS_API_KEY
   const strategy = opts.strategy ?? DEFAULT_STRATEGY
   const today = opts.today
 
@@ -197,7 +312,7 @@ export function createGroqExtractor(
 
   return {
     async extract(cvText: string): Promise<ExtractedProfile> {
-      if (!apiKey) throw new Error('GROQ_API_KEY is not set')
+      if (!apiKey) throw new Error('CEREBRAS_API_KEY is not set')
       if (cvText.trim().length < MIN_USEFUL_CHARS) return EMPTY_PROFILE
 
       const document = cvText.slice(0, MAX_CHARS)
