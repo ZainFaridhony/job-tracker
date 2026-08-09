@@ -7,13 +7,20 @@ import {
   Button,
   Card,
   ChoiceGrid,
+  Divider,
   FormError,
   SegmentedField,
   Select,
   WizardFooter,
   type Choice,
 } from '@job-tracker/ui'
-import { GraduationCapIcon, MedalIcon, RepeatIcon, TrendingUpIcon } from 'lucide-react'
+import {
+  CheckIcon,
+  GraduationCapIcon,
+  MedalIcon,
+  RepeatIcon,
+  TrendingUpIcon,
+} from 'lucide-react'
 import { TagPicker } from '@/components/tag-picker'
 import {
   finishOnboardingAction,
@@ -44,9 +51,6 @@ export type Profile = {
   salary_target: string | null
   salary_currency: string | null
 }
-
-/** What the CV itself contributed, for the summary on the last step. */
-export type CvFacts = { fileName: string; chars: number | null } | null
 
 /** Every step owns its action row, so every step needs the back target. It is
  *  undefined on step 1, where WizardFooter renders the submit on its own. */
@@ -163,7 +167,7 @@ const GOAL_CHOICES: Choice[] = CAREER_GOALS.map((g) => ({
 /**
  * Step 3 — what a CV cannot say.
  *
- * Career goal lives here rather than beside the roles Groq read off your
+ * Career goal lives here rather than beside the roles Cerebras read off your
  * history: a CV is a record of what you have done, and this step is about what
  * you want next. Three questions, so they are grouped into two visible
  * decisions — the goal, then the shape of the job — rather than reading as five
@@ -245,7 +249,11 @@ function FinishButton() {
   const { pending } = useFormStatus()
   return (
     <Button type="submit" pending={pending}>
-      {pending ? 'Opening your workspace…' : 'Go to my workspace'}
+      {/* "My Workspace" capitalised as a proper name — it names the place the
+          button goes, not a generic workspace. The pending label follows it for
+          the same reason: "Opening your workspace…" beside "Go to My Workspace"
+          would be two names for one destination. */}
+      {pending ? 'Opening My Workspace…' : 'Go to My Workspace'}
     </Button>
   )
 }
@@ -268,29 +276,29 @@ function few(items: string[], limit = 3): string {
 }
 
 /**
- * Step 4 — what the product now knows.
+ * Step 4 — what the product now knows, as a confirmation rather than a table.
  *
- * Not a receipt of what the user typed: the first row is the thing they cannot
- * see, which is that a file was read and how much text came out of it. The rest
- * is current state. Nothing here claims a personalised dashboard or a tailored
- * feed, because neither exists (PRD NG2) — the reference design's copy promised
- * both.
+ * The filename row is gone. It was the one fact here the user could not see
+ * elsewhere, but step 1 already narrates "Read <filename>" while the upload is
+ * happening, so this was the second telling — and it put a person's name and a
+ * character count on screen to say something they had just watched happen.
+ * Removing it also retires the `cvs` query in page.tsx, which existed only to
+ * feed it.
+ *
+ * Ticked rows rather than a two-column grid: every line here is a thing that is
+ * now settled, and a tick says that where a bare label does not. The values stay
+ * — a checklist reading "Resume analysed / Goals set" looks tidier and tells you
+ * nothing you could check, and this is the last screen before the wizard closes.
+ *
+ * Deliberately NOT taking two things from the reference design. Its copy claims
+ * a personalised dashboard built from your goals and career trajectory; no such
+ * personalisation exists (PRD NG2), and step 2-3's answers are currently stored
+ * and read by nothing. And its call to action sits inside the card, where this
+ * one cannot: WizardFooter lives outside the Card because the Card is the scroll
+ * region, and a button inside it scrolls away on a short viewport. See
+ * lib/onboarding/step-layout.ts.
  */
-export function DoneForm({
-  profile,
-  cv,
-  backHref,
-}: { profile: Profile; cv: CvFacts } & StepProps) {
-  // Characters, not words: char_count is what is stored, and pulling the full
-  // extracted text into this render just to count words would put dense PII on a
-  // page that has no use for it.
-  const read = cv
-    ? `${cv.fileName}${cv.chars ? ` · ${cv.chars.toLocaleString('en-GB')} characters` : ''}`
-    : 'No CV on file'
-
-  // Four, so the grid below has exactly four cells and no gap to explain. The
-  // CV row sits above them on its own because it is the one thing here the user
-  // did not type, and because a filename plus a count is the longest value.
+export function DoneForm({ profile, backHref }: { profile: Profile } & StepProps) {
   const summary: Array<[string, string]> = [
     ['Roles', few(profile.target_roles)],
     ['Skills', few(profile.skills)],
@@ -311,21 +319,38 @@ export function DoneForm({
     // FormData it never reads so it can be a form's action directly.
     <div className={STEP_FORM}>
       <Card className={STEP_BODY}>
-        <dl className="flex flex-col gap-6">
-          <div className="flex flex-col gap-1">
-            <dt className="text-xs font-medium tracking-wide text-text-muted">Read</dt>
-            <dd className="text-sm leading-relaxed text-text">{read}</dd>
-          </div>
+        <div className="flex flex-col gap-6">
+          {/* The affirmation the heading above states in words. Centred on the
+              same axis as that heading, so the card opens on one line rather
+              than two. aria-hidden: "Your profile is set" already says it, and
+              a screen reader does not need the mark repeated. */}
+          <span
+            aria-hidden
+            className="mx-auto flex size-12 items-center justify-center rounded-full bg-ink text-text-on-ink"
+          >
+            <CheckIcon className="size-6" strokeWidth={3} />
+          </span>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <Divider />
+
+          <dl className="flex flex-col gap-5">
             {summary.map(([term, value]) => (
-              <div key={term} className="flex flex-col gap-1">
-                <dt className="text-xs font-medium tracking-wide text-text-muted">{term}</dt>
-                <dd className="text-sm leading-relaxed text-text">{value}</dd>
+              <div key={term} className="flex items-start gap-3">
+                {/* text-ink, not the filled badge above: four filled circles
+                    would compete with the one that marks the whole step done. */}
+                <CheckIcon
+                  aria-hidden
+                  className="mt-0.5 size-4 shrink-0 text-ink"
+                  strokeWidth={3}
+                />
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <dt className="text-xs font-medium tracking-wide text-text-muted">{term}</dt>
+                  <dd className="text-sm leading-relaxed text-text">{value}</dd>
+                </div>
               </div>
             ))}
-          </div>
-        </dl>
+          </dl>
+        </div>
       </Card>
 
       <form action={finishOnboardingAction}>

@@ -3,7 +3,7 @@
  *
  * Step 2 is everything the CV told us, so the user's job there is to scan and
  * correct. Step 3 is everything a CV cannot say — what you want next, not what
- * you have done — so career goal belongs there and not beside the roles Groq
+ * you have done — so career goal belongs there and not beside the roles Cerebras
  * read off your history.
  *
  * This replaced six steps (resume / goals / roles / skills / work / done). The
@@ -30,7 +30,7 @@ export const STEPS = [
     sub: 'Correct anything we got wrong.',
     short: 'What we read',
     /**
-     * Shown instead of `sub` when the CV produced nothing — a Groq outage, or a
+     * Shown instead of `sub` when the CV produced nothing — a Cerebras outage, or a
      * CV whose text yielded no facts. The old wizard said "We pulled these from
      * your CV" unconditionally, so a failed extraction left that sentence
      * sitting above empty fields. page.tsx picks between the two on
@@ -131,7 +131,7 @@ export function isCurrency(code: string): boolean {
  * leaves ten years belonging to both.
  *
  * Deliberately NOT mirrored by a check constraint, unlike SALARY_CURRENCIES
- * above. uploadCvAction stores the precise figure Groq read from the CV, so the
+ * above. uploadCvAction stores the precise figure Cerebras read from the CV, so the
  * column legitimately holds values that are not lower bounds — 7 is common. A
  * whitelist here would reject our own AI pre-fill. bandFor buckets on read
  * instead, which is what makes an arbitrary stored integer displayable.

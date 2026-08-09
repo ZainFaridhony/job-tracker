@@ -132,7 +132,17 @@ export function WizardShell({
           })}
         </ol>
 
-        <div style={{ animationDelay: '140ms' }} className="mt-6 animate-rise">
+        {/* Centred, on the stepper's axis rather than the card's left edge.
+
+            This reverses an earlier decision, so the trade it makes is worth
+            stating: the card below is left-aligned wherever it holds fields, so
+            the column now has two axes rather than one. What buys it back is the
+            stepper directly above — four nodes spread across the same 880px are
+            symmetrical, and a left-aligned heading hanging under a symmetrical
+            rule was its own mismatch. Centre both and the header reads as one
+            block. Applies to every step: alternating per step would move the
+            heading sideways on Continue, which is worse than either axis. */}
+        <div style={{ animationDelay: '140ms' }} className="mt-6 animate-rise text-center">
           <h1 className="text-2xl font-bold tracking-tight text-text lg:text-3xl">{title}</h1>
           <p className="mt-2 text-sm leading-relaxed text-text-muted">{sub}</p>
         </div>
