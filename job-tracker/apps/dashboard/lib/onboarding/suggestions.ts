@@ -92,7 +92,11 @@ export const ROLE_SECTIONS: readonly Section[] = [
   },
   {
     label: 'Software engineering',
-    domains: ['ops', 'people', 'software'],
+    // `ops` is earned — DevOps Engineer, Site Reliability Engineer, Platform
+    // Engineer and Linux Engineer all sit here. `people` was not: Engineering
+    // Manager and Director of Engineering are engineering leadership, and an HR
+    // CV has no business being offered Backend Engineer.
+    domains: ['ops', 'software'],
     items: [
       'Software Engineer',
       'Backend Engineer',
@@ -207,7 +211,9 @@ export const ROLE_SECTIONS: readonly Section[] = [
   },
   {
     label: 'Design',
-    domains: ['design', 'people'],
+    // "Design Manager" and "Design Lead" are design leadership, not HR. Nothing
+    // in this section belongs to someone whose domain is people.
+    domains: ['design'],
     items: [
       'Product Designer',
       'UX Designer',
@@ -248,7 +254,11 @@ export const ROLE_SECTIONS: readonly Section[] = [
   },
   {
     label: 'Sales',
-    domains: ['people', 'sales'],
+    // Not `people`. Sales is not an HR discipline, and while `domains` is only
+    // relatedness now, the tag still says "offer these to an HR user" — which is
+    // wrong on its own terms, and was what put Software Engineer above Sales for
+    // a business-development CV back when this list doubled as evidence.
+    domains: ['sales'],
     items: [
       'Account Executive',
       'Sales Executive',
@@ -717,7 +727,11 @@ export const ROLE_SECTIONS: readonly Section[] = [
       'Founding Engineer',
       'Founding Designer',
       'Founding Product Manager',
-      'Entrepreneur in Residence',
+      // Abbreviation carried in the label rather than as a second entry: search
+      // is a substring match over the whole list, so "EIR" finds this row and
+      // "Entrepreneur" still does too. A separate 'EIR' item would be a second
+      // row meaning the same thing, which the no-duplicates test exists to stop.
+      'Entrepreneur in Residence (EIR)',
       'Venture Partner',
       'Startup Advisor',
       'Angel Investor',
