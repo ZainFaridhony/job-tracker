@@ -66,6 +66,7 @@ export function FilterBar({ filters }: { filters: FilterState }) {
                 <li key={chip.key} className="shrink-0">
                   <Link
                     href={jobsHref(withoutChip(filters, chip.key))}
+                    scroll={false}
                     className="inline-flex items-center gap-1.5 rounded-full border border-outline bg-surface px-3 py-1 text-xs font-medium text-text transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                   >
                     {chip.label}
@@ -78,6 +79,7 @@ export function FilterBar({ filters }: { filters: FilterState }) {
 
             <Link
               href={clearAllHref(filters)}
+              scroll={false}
               className="ml-auto shrink-0 rounded text-xs font-semibold text-text underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               Clear all

@@ -177,8 +177,25 @@ export function FilterSidebar({ filters }: { filters: FilterState }) {
 
       <Section title="Posted">
         {/* Radios, not checkboxes: the windows nest, so two ticked would mean
-            the wider one and the narrower one at once. */}
+            the wider one and the narrower one at once. "Any time" is the
+            group's own un-tick — an empty value, checked exactly when nothing
+            narrower is — because a radio group otherwise offers no way back
+            to "no filter" once one of the timed options is chosen.
+            `parseFilters` already drops an empty `posted` value to `null`
+            (it validates against POSTED_WINDOWS), so this needs no change
+            there. */}
         <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-3 text-sm text-text-muted">
+            <input
+              type="radio"
+              name="posted"
+              value=""
+              form={FILTER_FORM_ID}
+              defaultChecked={filters.postedWithinHours === null}
+              className="size-4 border border-outline accent-ink"
+            />
+            Any time
+          </label>
           {POSTED_WINDOWS.map((w) => (
             <label key={w.hours} className="flex items-center gap-3 text-sm text-text-muted">
               <input

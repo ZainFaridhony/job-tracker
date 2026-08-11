@@ -36,7 +36,7 @@ export default async function JobsPage({
       <DashboardNav current="/jobs" name={display} email={email} />
 
       <main className={PAGE_SHELL}>
-        <div className="flex animate-rise flex-col gap-3">
+        <div className="flex animate-rise flex-col items-start gap-3">
           <h1 className="text-3xl font-bold tracking-tight text-text lg:text-4xl">Jobs</h1>
           <SampleBadge />
         </div>

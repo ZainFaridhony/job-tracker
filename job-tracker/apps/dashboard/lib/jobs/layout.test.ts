@@ -37,10 +37,15 @@ describe('sticky offsets', () => {
     // coupling STICKY_SIDEBAR's top-[136px] depends on was comment-only.
     // Nothing else notices if the row's height changes, and the symptom is
     // the same stripe-of-page bug as the nav check above, just one layer down.
+    //
+    // Asserts on the class string, not just the bare substring: this file's
+    // own prose mentions "h-10" three times (in comments, ahead of the class
+    // attribute) before the row is ever declared, so `toContain('h-10')`
+    // alone would still pass with the class deleted entirely.
     const bar = readFileSync(
       new URL('../../components/jobs/filter-bar.tsx', import.meta.url),
       'utf8',
     )
-    expect(bar).toContain('h-10')
+    expect(bar).toContain('flex h-10 flex-nowrap')
   })
 })

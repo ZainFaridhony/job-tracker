@@ -30,6 +30,7 @@ function EmptyResults({ filters }: { filters: FilterState }) {
       </div>
       <Link
         href={clearAllHref(filters)}
+        scroll={false}
         className="inline-flex items-center rounded bg-ink px-4 py-2.5 text-sm font-semibold text-text-on-ink transition-colors duration-150 hover:bg-ink-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       >
         Clear all filters
