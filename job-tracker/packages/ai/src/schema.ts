@@ -2,7 +2,7 @@ import { yearsOfExperience, type EmploymentPeriod } from './employment'
 import { EMPTY_PROFILE, type ExtractedProfile } from './types'
 
 /**
- * Sent to Groq as a strict json_schema.
+ * Sent to Cerebras as a strict json_schema.
  *
  * Roles carry their own dates rather than sitting in a parallel array. One entry
  * per position means the model never has to keep two lists aligned, and it makes

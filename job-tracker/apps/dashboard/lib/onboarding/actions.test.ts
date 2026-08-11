@@ -18,7 +18,7 @@ vi.mock('next/navigation', () => ({
 
 const extract = vi.fn()
 vi.mock('@job-tracker/ai', () => ({
-  createGroqExtractor: () => ({ extract }),
+  createCerebrasExtractor: () => ({ extract }),
 }))
 
 type Update = { table: string; values: Record<string, unknown>; id: unknown }
@@ -261,7 +261,7 @@ describe('uploadCvAction — happy path', () => {
     expect(to).toBe('/onboarding/profile')
   })
 
-  it('still advances when the model fails — a Groq outage must not block signup', async () => {
+  it('still advances when the model fails — a Cerebras outage must not block signup', async () => {
     extract.mockRejectedValue(new Error('502'))
     const to = await redirectTarget(() =>
       uploadCvAction({}, upload('cv.pdf', fixture('text-cv.pdf'), PDF_MIME)),
@@ -280,7 +280,7 @@ describe('uploadCvAction — happy path', () => {
   })
 
   it('claims no pre-fill when the model answered but found nothing', async () => {
-    // Groq can succeed and still return an empty profile — a CV under the
+    // Cerebras can succeed and still return an empty profile — a CV under the
     // minimum useful length, or a malformed response the validator falls back on.
     extract.mockResolvedValue({ targetRoles: [], skills: [], yearsExperience: null })
     await redirectTarget(() =>

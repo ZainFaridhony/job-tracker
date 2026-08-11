@@ -19,7 +19,7 @@ import { STEP_BODY, STEP_FORM } from '@/lib/onboarding/step-layout'
  * Step 1: the CV, and the wait for it.
  *
  * Reading a CV is the longest silence in the product — local text extraction, a
- * storage write, then a Groq call, five to fifteen seconds — and it lands at the
+ * storage write, then a Cerebras call, five to fifteen seconds — and it lands at the
  * moment a first-time user is deciding whether this thing works. So the wait is
  * narrated: each line below corresponds to a real boundary in ingestCv, reported
  * as it is crossed, not advanced on a timer.
@@ -94,7 +94,7 @@ function Tick({ state }: { state: 'done' | 'active' | 'waiting' | 'skipped' }) {
     )
   }
   if (state === 'skipped') {
-    // Neither a tick nor an error: a Groq outage does not stop onboarding, so it
+    // Neither a tick nor an error: a Cerebras outage does not stop onboarding, so it
     // must not read as a failure.
     return (
       <span
@@ -311,12 +311,6 @@ export function ResumeForm({ backHref }: { backHref?: string }) {
               {fileName ? 'Click to choose a different file' : 'PDF or Word document, up to 10 MB'}
             </span>
           </label>
-
-          {/* P2: say where the file goes before it is sent, not in a policy page. */}
-          <p className="text-xs leading-relaxed text-text-subtle">
-            We extract the text from your CV and send it to our AI provider (Groq) to fill in the
-            next step. It is stored privately and is never visible to anyone else.
-          </p>
         </div>
       </Card>
 

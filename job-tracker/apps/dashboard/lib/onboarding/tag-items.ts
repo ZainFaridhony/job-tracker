@@ -86,6 +86,35 @@ export function pairRows<T>(items: readonly T[]): T[][] {
 }
 
 /**
+ * Where each chosen value actually lives: section index -> how many chips it
+ * holds, and the position of the earliest one.
+ *
+ * Containment is the strongest evidence there is — far stronger than a shared
+ * domain tag — and it was not being used at all. Position matters because the
+ * extractor returns roles most-recent-first, so the earliest match is the one
+ * closest to what the person does now.
+ */
+function chipsBySection(
+  sections: readonly Section[],
+  chosen: readonly string[],
+): Map<number, { count: number; firstChip: number }> {
+  const byValue = new Map<string, number>()
+  sections.forEach((section, index) => {
+    for (const item of section.items) byValue.set(item.toLowerCase(), index)
+  })
+
+  const hits = new Map<number, { count: number; firstChip: number }>()
+  chosen.forEach((value, chipIndex) => {
+    const index = byValue.get(value.trim().toLowerCase())
+    if (index === undefined) return
+    const existing = hits.get(index)
+    if (existing) existing.count += 1
+    else hits.set(index, { count: 1, firstChip: chipIndex })
+  })
+  return hits
+}
+
+/**
  * Orders the sections by how well each matches what the CV already produced.
  *
  * The picker shows its opening rows before anyone types, and in authored order
@@ -96,54 +125,79 @@ export function pairRows<T>(items: readonly T[]): T[][] {
  * edits. Re-ranking live would reorder the list under the cursor while someone is
  * picking from it.
  *
- * Three tiers rather than a score: a section in one of the user's own domains,
- * then the cross-industry one, then the rest. Within a tier the authored order is
- * preserved, because that order is already deliberate.
+ * FOUR tiers, and the first one is the fix:
+ *
+ *   0  the section literally contains one of the user's values
+ *   1  a section related to those, by shared domain
+ *   2  cross-industry
+ *   3  everything else
+ *
+ * Tier 0 did not exist, and its absence is what put "Software Engineer" and "UX
+ * Designer" at the top for a business-development CV. Evidence used to be read
+ * as *domains*: a chip found in Sales asserted every domain that section listed,
+ * Sales listed `people`, and so every people-tagged section — Software
+ * engineering among them — tied for first and won on authored order. A chip in
+ * Sales is evidence of Sales. It is not evidence of HR.
+ *
+ * `Section.domains` now does one job instead of two: relatedness, tier 1 only.
+ * Which sections a chip proves you belong to is answered by containment, which
+ * cannot drift the way a hand-maintained tag list can.
+ *
+ * Within tier 0, more chips wins, then the earliest chip — the extractor emits
+ * roles most-recent-first, so a current title outranks one from six years ago.
+ * Other tiers keep the authored order, which is already deliberate.
  */
 export function rankSections(
   sections: readonly Section[],
   chosen: readonly string[],
 ): Section[] {
-  const domains = inferDomains(sections, chosen)
+  const hits = chipsBySection(sections, chosen)
+  const domains = inferDomains(sections, hits)
 
   // No signal to rank by. Cross-industry already leads the authored order, so
   // returning it unchanged is the right answer rather than a fallback.
-  if (domains.size === 0) return [...sections]
+  if (hits.size === 0 && domains.size === 0) return [...sections]
 
-  const tier = (section: Section): number => {
-    if (section.domains.some((d) => d !== 'general' && domains.has(d))) return 0
-    if (section.domains.includes('general')) return 1
-    return 2
+  const tier = (section: Section, index: number): number => {
+    if (hits.has(index)) return 0
+    if (section.domains.some((d) => d !== 'general' && domains.has(d))) return 1
+    if (section.domains.includes('general')) return 2
+    return 3
   }
 
   return sections
-    .map((section, index) => ({ section, index, tier: tier(section) }))
-    .sort((a, b) => a.tier - b.tier || a.index - b.index)
+    .map((section, index) => ({ section, index, tier: tier(section, index) }))
+    .sort((a, b) => {
+      if (a.tier !== b.tier) return a.tier - b.tier
+      if (a.tier === 0) {
+        const ha = hits.get(a.index)!
+        const hb = hits.get(b.index)!
+        if (ha.count !== hb.count) return hb.count - ha.count
+        if (ha.firstChip !== hb.firstChip) return ha.firstChip - hb.firstChip
+      }
+      return a.index - b.index
+    })
     .map(({ section }) => section)
 }
 
 /**
- * Which domains the chosen values sit in, read off the sections themselves.
+ * Which domains the user's own sections touch — used for tier 1 only.
  *
- * `general` never counts as evidence: almost every CV yields "Communication" or
- * "Excel", so treating those as a domain signal would put every user in the same
- * bucket and rank nothing.
+ * Read off the sections the chips actually landed in, so relatedness spreads
+ * outward from where the user demonstrably is. `general` never counts: almost
+ * every CV yields "Communication" or "Excel", so treating those as a domain
+ * signal would put every user in the same bucket and rank nothing.
  */
-function inferDomains(sections: readonly Section[], chosen: readonly string[]): Set<Domain> {
-  const byValue = new Map<string, Section>()
-  for (const section of sections) {
-    for (const item of section.items) byValue.set(item.toLowerCase(), section)
-  }
-
+function inferDomains(
+  sections: readonly Section[],
+  hits: ReadonlyMap<number, { count: number; firstChip: number }>,
+): Set<Domain> {
   const found = new Set<Domain>()
-  for (const value of chosen) {
-    const section = byValue.get(value.trim().toLowerCase())
-    if (!section) continue
-    for (const domain of section.domains) {
+  for (const index of hits.keys()) {
+    for (const domain of sections[index]!.domains) {
       if (domain !== 'general') found.add(domain)
     }
   }
-
   return found
 }
 

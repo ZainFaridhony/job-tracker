@@ -4,7 +4,7 @@ import { createServerSupabase } from '@job-tracker/db/server'
 import { ResumeForm } from '@/components/resume-upload'
 import { onboardingRedirect } from '@/lib/onboarding/gate'
 import { slugForStep, stepBySlug, STEPS, TOTAL_STEPS } from '@/lib/onboarding/steps'
-import { DoneForm, PreferencesForm, ProfileForm, type CvFacts, type Profile } from './forms'
+import { DoneForm, PreferencesForm, ProfileForm, type Profile } from './forms'
 
 export const metadata = { title: 'Get started · Job Tracker AI' }
 
@@ -51,21 +51,12 @@ export default async function OnboardingStepPage({
     salary_currency: profile.salary_currency,
   }
 
-  // Only the last step shows what the CV contributed, and only it pays for the
-  // extra query. Deliberately not selecting extracted_text: char_count is all
-  // the summary needs, and the text itself is dense PII (P1/P3).
-  let cv: CvFacts = null
-  if (step.slug === 'done') {
-    const { data: row } = await supabase
-      .from('cvs')
-      .select('file_name, char_count')
-      .eq('user_id', userId as string)
-      .eq('is_primary', true)
-      .maybeSingle()
-    if (row) cv = { fileName: row.file_name, chars: row.char_count }
-  }
+  // The `cvs` query that used to live here is gone with the filename row it fed.
+  // Step 4 now confirms what the profile holds, and every one of those values is
+  // already on `profiles` — so no step reads the CV table, and the wizard costs
+  // one query on every step instead of two on the last.
 
-  // "Here's what we read" is a lie over empty fields, which is what a Groq
+  // "Here's what we read" is a lie over empty fields, which is what a Cerebras
   // outage leaves behind. cv_prefilled_at records whether the model actually
   // returned anything, so the copy follows the event rather than the field
   // values — which the user may since have edited by hand.
@@ -87,7 +78,7 @@ export default async function OnboardingStepPage({
       {step.slug === 'resume' && <ResumeForm backHref={backHref} />}
       {step.slug === 'profile' && <ProfileForm profile={p} backHref={backHref} />}
       {step.slug === 'preferences' && <PreferencesForm profile={p} backHref={backHref} />}
-      {step.slug === 'done' && <DoneForm profile={p} cv={cv} backHref={backHref} />}
+      {step.slug === 'done' && <DoneForm profile={p} backHref={backHref} />}
     </WizardShell>
   )
 }

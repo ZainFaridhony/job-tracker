@@ -6,7 +6,7 @@ import { currentUserId, persistStep } from '@/lib/onboarding/persist'
  * Step 1's upload, reported stage by stage as it happens.
  *
  * Reading a CV takes five to fifteen seconds — local text extraction, a storage
- * write, then a Groq call. Behind a single spinner that is the longest silence
+ * write, then a Cerebras call. Behind a single spinner that is the longest silence
  * in the product, at the one moment a first-time user is deciding whether this
  * thing works. Each line the client draws corresponds to a real boundary in
  * ingestCv, not to a timer.

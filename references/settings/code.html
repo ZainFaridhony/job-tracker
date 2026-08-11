@@ -1,0 +1,248 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Job Tracker AI - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1A1A1A",
+                        "on-primary": "#FFFFFF",
+                        "primary-container": "#F5F5F5",
+                        "on-primary-container": "#1A1A1A",
+                        surface: "#FFFFFF",
+                        "surface-variant": "#F9FAFB",
+                        "on-surface": "#1A1A1A",
+                        "on-surface-variant": "#6B7280",
+                        outline: "#E5E7EB",
+                        "outline-variant": "#F3F4F6",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Public Sans", "sans-serif"],
+                        display: ["Public Sans", "sans-serif"],
+                        body: ["Public Sans", "sans-serif"],
+                        label: ["Public Sans", "sans-serif"]
+                    },
+                    spacing: {
+                        "margin-desktop": "2rem",
+                        "stack-sm": "0.5rem",
+                        "stack-md": "1rem",
+                        "stack-lg": "1.5rem",
+                        "stack-xl": "2rem",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; background-color: #FAFAFA; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+    </style>
+</head>
+<body class="text-on-surface antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar (Predicted Component) -->
+
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full relative"><header class="sticky top-0 z-50 w-full bg-white border-b border-outline-variant px-8 h-16 flex items-center justify-between"><div class="flex items-center gap-2"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYIvJxmotw6QPbIG9SLeVl6H0zhZG8OPHeKKCUvUyZTNEaJaSiS318WUtRYP9NjwyhCIjoFJiH-vT1exgblFKQTLNaoA8t39yd4kXf4DbOhyO2Y3oVOJSG4O0HV7FWpnz1I48PWrbMz4xvQlhc4A7eTQJI7gHSGH5BUNK7XOyTEImBjI8P7kOQQs5GXQrYidfVTIbFfsVKLL3TABUQlnobRT2wRRU2PV-zzyeyWuIRCPngJlfRxl5qK7TZx2H6MZREdA" alt="Job Tracker Logo" class="w-8 h-8 rounded-lg"><span class="font-bold text-primary hidden md:block">Job Tracker AI</span></div><nav class="absolute left-1/2 -translate-x-1/2 bg-surface-variant rounded-full p-1 flex items-center gap-1"><a href="#" class="px-4 py-1.5 rounded-full text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Dashboard</a><a href="#" class="px-4 py-1.5 rounded-full text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Jobs</a><a href="#" class="px-4 py-1.5 rounded-full text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Applications</a><a href="#" class="px-4 py-1.5 rounded-full text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Resume</a></nav><div class="flex items-center gap-4"><span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-variant p-2 rounded-full transition-colors">notifications</span><div class="w-8 h-8 rounded-full bg-surface-variant border border-outline-variant flex items-center justify-center cursor-pointer overflow-hidden"><span class="material-symbols-outlined text-on-surface-variant">person</span></div></div></header>
+<!-- TopNavBar (Predicted Component) -->
+
+<!-- Page Content -->
+<div class="flex-1 overflow-y-auto bg-[#FAFAFA] p-4 md:p-8">
+<div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
+<!-- Settings Sub-navigation -->
+<aside class="w-full md:w-64 flex-shrink-0">
+<h2 class="text-xl font-bold mb-4 px-2 hidden md:block">Settings</h2>
+<nav class="flex md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+<a class="px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-white hover:shadow-sm transition-all whitespace-nowrap font-medium text-sm" href="#">Profile</a>
+<!-- Active Sub-nav -->
+<a class="px-4 py-2.5 rounded-lg bg-white shadow-sm text-primary font-bold transition-all whitespace-nowrap text-sm border border-outline-variant" href="#">Preferences</a>
+
+
+<a class="px-4 py-2.5 rounded-lg text-on-surface-variant hover:bg-white hover:shadow-sm transition-all whitespace-nowrap font-medium text-sm" href="#">Billing</a>
+</nav>
+</aside>
+<!-- Preferences Content Container -->
+<div class="flex-1 bg-white rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+<!-- Header -->
+<div class="px-8 py-10 border-b border-outline-variant text-center md:text-left">
+<h2 class="text-3xl font-extrabold text-primary mb-2 tracking-tight">Preferences</h2>
+<p class="text-on-surface-variant text-base">Customize your AI career engine to find the best matches.</p>
+</div>
+<div class="p-8 space-y-12">
+<!-- Section 1: Career Goal -->
+<section>
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Career Goal</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="career_goal" type="radio">
+<div class="h-full p-5 rounded-xl border border-outline-variant bg-white transition-all hover:border-outline peer-checked:border-primary peer-checked:border-2 peer-checked:shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant mb-3 group-hover:text-primary peer-checked:text-primary transition-colors">school</span>
+<p class="font-medium text-sm text-primary">Land my first role</p>
+</div>
+</label>
+<!-- Card 2 -->
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="career_goal" type="radio">
+<div class="h-full p-5 rounded-xl border border-outline-variant bg-white transition-all hover:border-outline peer-checked:border-primary peer-checked:border-2 peer-checked:shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant mb-3 group-hover:text-primary peer-checked:text-primary transition-colors">trending_up</span>
+<p class="font-medium text-sm text-primary">Move to a better company</p>
+</div>
+</label>
+<!-- Card 3 -->
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="career_goal" type="radio">
+<div class="h-full p-5 rounded-xl border border-outline-variant bg-white transition-all hover:border-outline peer-checked:border-primary peer-checked:border-2 peer-checked:shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant mb-3 group-hover:text-primary peer-checked:text-primary transition-colors">swap_horiz</span>
+<p class="font-medium text-sm text-primary">Change field or specialism</p>
+</div>
+</label>
+<!-- Card 4 (Active) -->
+<label class="cursor-pointer group relative">
+<input checked="" class="peer sr-only" name="career_goal" type="radio">
+<div class="h-full p-5 rounded-xl border-2 border-primary bg-white shadow-sm transition-all">
+<span class="material-symbols-outlined text-primary mb-3">military_tech</span>
+<p class="font-medium text-sm text-primary">Step up to a senior level</p>
+</div>
+</label>
+</div>
+</section>
+<!-- Section 2: Roles from your CV -->
+<section>
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Roles from your CV</h3>
+<div class="border border-outline-variant rounded-xl p-4 bg-surface-variant flex flex-wrap gap-2 items-center relative min-h-[60px] cursor-text">
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Brand Partner Specialist - Automation
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Business Development Manager
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Product Manager
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Sales Executive
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<input class="bg-transparent border-none focus:ring-0 text-sm flex-1 min-w-[100px] p-0 m-0" placeholder="" type="text">
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</section>
+<!-- Section 3: Skills -->
+<section>
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Skills</h3>
+<div class="border border-outline-variant rounded-xl p-4 bg-surface-variant flex flex-wrap gap-2 items-center relative min-h-[60px] cursor-text">
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    English
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Indonesia
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Customer Experience Management
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Digital Marketing Strategy
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Lead Generation
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    B2B Sales
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<div class="flex items-center bg-primary text-white px-3 py-1.5 rounded-full text-sm font-medium gap-1">
+                                    Effective Meeting Strategy
+                                    <button class="hover:bg-white/20 rounded-full p-0.5"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+<input class="bg-transparent border-none focus:ring-0 text-sm flex-1 min-w-[100px] p-0 m-0" placeholder="" type="text">
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</section>
+<!-- Section 4: Experience & Location Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Experience -->
+<section>
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Years of experience</h3>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-variant border border-outline-variant text-primary text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+<option>6-9 years (Senior)</option>
+<option>1-3 years (Junior)</option>
+<option>3-5 years (Mid)</option>
+<option>10+ years (Lead/Exec)</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</section>
+<!-- Preferred Location -->
+<section>
+<h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Preferred Location</h3>
+<div class="flex bg-surface-variant rounded-xl p-1 border border-outline-variant">
+<label class="flex-1 text-center">
+<input class="peer sr-only" name="location" type="radio">
+<div class="py-2.5 rounded-lg text-sm font-medium text-on-surface-variant cursor-pointer peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all">
+                                            Remote
+                                        </div>
+</label>
+<label class="flex-1 text-center">
+<input checked="" class="peer sr-only" name="location" type="radio">
+<div class="py-2.5 rounded-lg text-sm font-medium text-on-surface-variant cursor-pointer peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all">
+                                            Hybrid
+                                        </div>
+</label>
+<label class="flex-1 text-center">
+<input class="peer sr-only" name="location" type="radio">
+<div class="py-2.5 rounded-lg text-sm font-medium text-on-surface-variant cursor-pointer peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all">
+                                            On-site
+                                        </div>
+</label>
+</div>
+</section>
+</div>
+<!-- Section 6: Salary Expectations -->
+<section><div class="flex justify-between items-center mb-4"><h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Salary Expectations</h3><div class="flex bg-surface-variant rounded-full p-1 border border-outline-variant"><label class="text-center"><input checked="" class="peer sr-only" name="salary_freq" type="radio"><div class="px-4 py-1.5 rounded-full text-xs font-medium text-on-surface-variant cursor-pointer peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all">Yearly</div></label><label class="text-center"><input class="peer sr-only" name="salary_freq" type="radio"><div class="px-4 py-1.5 rounded-full text-xs font-medium text-on-surface-variant cursor-pointer peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm transition-all">Monthly</div></label></div></div><div class="relative border-b border-outline-variant focus-within:border-primary transition-colors pb-2 group"><label class="text-xs text-on-surface-variant absolute top-0 left-0 transition-all group-focus-within:text-primary">Target salary</label><div class="flex items-baseline mt-6"><span class="text-2xl font-bold text-on-surface-variant mr-2">Rp</span><input class="text-3xl md:text-4xl font-extrabold text-primary bg-transparent border-none p-0 focus:ring-0 flex-1 w-full" placeholder="0" type="text" value="1,000,000,000"><div class="relative ml-4 shrink-0"><select class="appearance-none bg-surface-variant border border-outline-variant text-primary text-sm font-medium rounded-lg pl-4 pr-10 py-2 focus:ring-2 focus:ring-primary focus:border-primary transition-all"><option>IDR</option><option>USD</option><option>EUR</option><option>SGD</option></select><span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">expand_more</span></div></div></div></section>
+</div>
+<!-- Footer Actions (Sticky Bottom inside container for long forms, but static here) -->
+<div class="px-8 py-5 border-t border-outline-variant bg-surface-variant flex justify-between items-center">
+
+<button class="px-8 py-2.5 rounded-lg bg-primary text-white font-medium hover:opacity-90 transition-opacity text-sm shadow-sm">
+                            Save Preferences
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+
+
+</body></html>

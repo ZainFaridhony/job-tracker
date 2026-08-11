@@ -11,7 +11,7 @@ export { DOCX_MIME, MAX_BYTES, PDF_MIME }
 
 /**
  * Below this a file is treated as having no usable text. It matches
- * MIN_USEFUL_CHARS in @job-tracker/ai, which refuses to call Groq on less.
+ * MIN_USEFUL_CHARS in @job-tracker/ai, which refuses to call Cerebras on less.
  */
 export const MIN_USEFUL_CHARS = 200
 

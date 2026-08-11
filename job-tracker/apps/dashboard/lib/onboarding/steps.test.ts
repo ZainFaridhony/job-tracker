@@ -168,7 +168,7 @@ describe('bandFor', () => {
   })
 
   it('buckets the precise figure the model reads from a CV', () => {
-    // uploadCvAction stores what Groq read — 7 is the fixture's value — and no
+    // uploadCvAction stores what Cerebras read — 7 is the fixture's value — and no
     // band has a floor of 7, so an equality lookup would find nothing.
     expect(bandFor(7)?.value).toBe('6')
   })

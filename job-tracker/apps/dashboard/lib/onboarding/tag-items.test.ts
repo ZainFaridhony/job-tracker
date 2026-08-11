@@ -174,6 +174,64 @@ describe('rankSections', () => {
     expect(rankSections(SECTIONS, ['backend engineer'])[0]!.label).toBe('Software engineering')
   })
 
+  /**
+   * The sections above are all single-domain, which is why they never caught
+   * this: the defect only appears once a section carries a domain it does not
+   * own. The real data did — Sales was tagged `['people', 'sales']` — and a chip
+   * in Sales therefore asserted the user was in `people`, which pulled every
+   * people-tagged section into the same tier. Software engineering was authored
+   * earlier, so it won the tie and a business-development CV opened on
+   * "Software Engineer".
+   */
+  const OVERTAGGED: Section[] = [
+    { label: 'Cross-industry', domains: ['general'], items: ['Project Manager'] },
+    { label: 'Software engineering', domains: ['people', 'software'], items: ['Backend Engineer'] },
+    { label: 'Sales', domains: ['people', 'sales'], items: ['Business Development Manager'] },
+    { label: 'People and HR', domains: ['people'], items: ['Recruiter'] },
+  ]
+
+  it('leads with the section holding the chip, not one that merely shares a tag', () => {
+    const labels = rankSections(OVERTAGGED, ['Business Development Manager']).map((s) => s.label)
+    expect(labels[0]).toBe('Sales')
+    expect(labels.indexOf('Sales')).toBeLessThan(labels.indexOf('Software engineering'))
+  })
+
+  it('still offers tag-related sections, just below the ones with evidence', () => {
+    // Relatedness is not thrown away — it is demoted. `people` is shared, so
+    // those sections stay ahead of anything unrelated.
+    const labels = rankSections(OVERTAGGED, ['Business Development Manager']).map((s) => s.label)
+    expect(labels.indexOf('People and HR')).toBeLessThan(labels.indexOf('Cross-industry'))
+  })
+
+  it('orders by how many chips a section holds', () => {
+    const sections: Section[] = [
+      { label: 'A', domains: ['software'], items: ['a1'] },
+      { label: 'B', domains: ['sales'], items: ['b1', 'b2'] },
+    ]
+    expect(rankSections(sections, ['a1', 'b1', 'b2'])[0]!.label).toBe('B')
+  })
+
+  it('breaks a tie on the earliest chip, because roles arrive most-recent-first', () => {
+    const sections: Section[] = [
+      { label: 'Product', domains: ['product'], items: ['Product Analyst'] },
+      { label: 'Sales', domains: ['sales'], items: ['Account Executive'] },
+    ]
+    // One chip each. The current job is listed first, so Sales should lead even
+    // though Product is authored earlier.
+    const labels = rankSections(sections, ['Account Executive', 'Product Analyst']).map(
+      (s) => s.label,
+    )
+    expect(labels).toEqual(['Sales', 'Product'])
+  })
+
+  it('does not let a general chip vouch for unrelated sections', () => {
+    // A general chip pins its own section, which is honest — it is where the
+    // value lives. What it must not do is emit `general` as a domain and drag
+    // every other section up with it.
+    const labels = rankSections(OVERTAGGED, ['Project Manager']).map((s) => s.label)
+    expect(labels).toEqual(OVERTAGGED.map((s) => s.label))
+  })
+
   it('reads more than one domain off the CV', () => {
     const top = rankSections(SECTIONS, ['Backend Engineer', 'Figma'])
       .slice(0, 2)

@@ -1,4 +1,4 @@
-import { createGroqExtractor, type ExtractedProfile } from '@job-tracker/ai'
+import { createCerebrasExtractor, type ExtractedProfile } from '@job-tracker/ai'
 import { createServerSupabase } from '@job-tracker/db/server'
 import type { TablesUpdate } from '@job-tracker/db/types'
 import { extractText } from './extract-text'
@@ -20,7 +20,7 @@ import { checkFile, type IngestFailure } from './limits'
 /**
  * Progress events, emitted at the moment the work actually happens rather than
  * on a timer. `understanding` resolves through `prefilled`, which reports
- * whether the model returned anything usable — a Groq outage must read as
+ * whether the model returned anything usable — a Cerebras outage must read as
  * "nothing to correct", not as a failure, because it does not stop onboarding.
  */
 export type IngestStage =
@@ -107,17 +107,41 @@ export async function ingestCv({ userId, file, onStage }: IngestInput): Promise<
   onStage?.({ stage: 'stored' })
   onStage?.({ stage: 'understanding' })
 
-  // Pre-fill step 2. A Groq failure must never block onboarding — the user just
+  // Pre-fill step 2. A Cerebras failure must never block onboarding — the user just
   // fills those fields in by hand.
   let profile: ExtractedProfile | null = null
+  let threw: string | null = null
   try {
-    profile = await createGroqExtractor().extract(extracted.text)
-  } catch {
-    // Swallowed on purpose: a provider error can echo the prompt, and the
-    // prompt is the user's CV (P3).
+    profile = await createCerebrasExtractor().extract(extracted.text)
+  } catch (error) {
+    // The error still never reaches the user, for the reason it always did: a
+    // provider error body can echo the prompt, and the prompt is the CV (P3).
+    // But swallowing it *silently* made four distinct causes — a bad key, a
+    // 429, a provider outage, and a CV the model genuinely could not read —
+    // land on the same "Couldn't read the details" line with nothing written
+    // anywhere. That cost a full debugging session to get back to a guess.
+    //
+    // What is recorded here is only what our own code constructed: an HTTP
+    // status, and for a 429 the account's own rate-limit headers. Never
+    // `response.body`. See limitDetail() in packages/ai, which exists to keep
+    // that distinction.
+    threw = error instanceof Error ? error.message : 'unknown error'
   }
 
   const prefilled = profile !== null && isPrefilled(profile)
+
+  // P3 permits IDs, never content. `chars` is a length, not text.
+  if (threw) {
+    console.warn(`[cv] extraction failed for user ${userId}: ${threw}`)
+  } else if (!prefilled) {
+    // The call came back fine and the model simply found nothing. A completely
+    // different problem from the branch above, and previously indistinguishable
+    // from it: this one points at the prompt or the document, not the provider.
+    console.warn(
+      `[cv] extraction returned an empty profile for user ${userId} (${extracted.chars} chars)`,
+    )
+  }
+
   onStage?.({ stage: 'prefilled', prefilled })
 
   // Only overwrite the AI-filled lists when there is something to write. On a

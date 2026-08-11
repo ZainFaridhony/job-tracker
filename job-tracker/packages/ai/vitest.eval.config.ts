@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
 
-// Live Groq calls over the labelled CV set. Separate config so `turbo test` can
+// Live Cerebras calls over the labelled CV set. Separate config so `turbo test` can
 // never pick them up, and a long timeout because a full run is ~60 calls:
 //   pnpm --filter @job-tracker/ai eval
 export default defineConfig({

@@ -124,11 +124,22 @@ describe('WizardShell', () => {
     expect(delays).toEqual(['70ms', '140ms', '210ms'])
   })
 
-  it('aligns the header on one axis with the card', () => {
+  it('centres the heading block on the stepper axis', () => {
+    // Title and sub centre together, as one block. Centring only the h1 would
+    // give the header itself two axes, which is the mismatch this is fixing.
     const { container } = renderAt(2)
-    // The heading was centred over a left-aligned card once, which gave the
-    // column three axes and no spine. Only the stepper's own labels centre.
-    expect(container.querySelector('h1')!.className).not.toContain('text-center')
+    const block = container.querySelector('h1')!.parentElement!
+    expect(block.className).toContain('text-center')
+    expect(block).toContainElement(screen.getByText('We read it once.'))
+  })
+
+  it('centres the heading on every step, not just the first', () => {
+    // Alternating per step would slide the heading sideways on Continue.
+    for (const step of [1, 2, 3, 4]) {
+      const { container, unmount } = renderAt(step)
+      expect(container.querySelector('h1')!.parentElement!.className).toContain('text-center')
+      unmount()
+    }
   })
 
   it('caps the card and the header at the same width, so they share an edge', () => {
