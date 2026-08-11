@@ -248,7 +248,8 @@ export function rawFromQuery(query: string): RawParams {
  *  never silently drops the filters that found it. */
 export function jobsHref(f: FilterState, jobId?: string): string {
   const query = toQuery(f)
-  const withJob = jobId ? (query ? `${query}&job=${jobId}` : `job=${jobId}`) : query
+  const encodedJob = jobId ? `job=${encodeURIComponent(jobId)}` : ''
+  const withJob = jobId ? (query ? `${query}&${encodedJob}` : encodedJob) : query
   return withJob ? `/jobs?${withJob}` : '/jobs'
 }
 

@@ -195,6 +195,16 @@ describe('jobsHref', () => {
       '/jobs?mode=remote&job=acme-senior-product-designer',
     )
   })
+
+  it('encodes an id that needs it, and round-trips back through parseFilters', () => {
+    const id = 'weird id/with?chars&stuff'
+    const href = jobsHref(EMPTY_FILTERS, id)
+    expect(href).toBe(`/jobs?job=${encodeURIComponent(id)}`)
+
+    const query = href.slice('/jobs?'.length)
+    const raw = rawFromQuery(query)
+    expect(raw.job).toBe(id)
+  })
 })
 
 describe('clearAllHref', () => {
