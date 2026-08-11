@@ -20,7 +20,11 @@ export const NAV_HEIGHT = 72
 /** The filter bar: py-3 either side of a 40px control row. */
 export const BAR_HEIGHT = 64
 
-/** Matches the dashboard's own main element, so the two screens line up. */
+/** Matches the dashboard's own main element on horizontal alignment only —
+ *  same `max-w-[1600px]`, same `px-4 md:px-12`, so the two screens' content
+ *  lines up left and right. The vertical rhythm deliberately does not match
+ *  (`gap-6` here against the dashboard's `gap-8`), and this adds `w-full`,
+ *  which the dashboard's shell does not have. */
 export const PAGE_SHELL = 'mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-8 md:px-12'
 
 export const STICKY_BAR =

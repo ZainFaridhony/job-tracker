@@ -74,9 +74,19 @@ export function CompanyMark({ mark, size = 'md' }: { mark: string; size?: 'sm' |
 }
 
 /** The ink tick beside a company name. Blue in the reference; there is no blue
- *  token, and the tick reads as verification without one. */
+ *  token, and the tick reads as verification without one. `role="img"` pairs
+ *  with the label the same way `Logo` does — lucide sets neither `role` nor
+ *  `aria-hidden` on its own, and an `aria-label` on a bare `<svg>` is exposed
+ *  inconsistently without it. */
 export function VerifiedTick() {
-  return <BadgeCheck aria-label="Verified employer" className="size-4 shrink-0 text-text" strokeWidth={2} />
+  return (
+    <BadgeCheck
+      role="img"
+      aria-label="Verified employer"
+      className="size-4 shrink-0 text-text"
+      strokeWidth={2}
+    />
+  )
 }
 
 /** The filled percentage pill on the card. */

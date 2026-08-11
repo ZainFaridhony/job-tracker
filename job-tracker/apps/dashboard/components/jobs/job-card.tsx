@@ -15,10 +15,13 @@ import { CompanyMark, CompetitionMeter, MatchPill, Pill, VerifiedTick } from './
  * recovery differs, so the two are siblings in a relative container with the
  * link stretched across it by an ::after.
  *
- * The header row sits above that overlay (`relative z-10`): the stretched
- * link paints on top of the header in source order, which would otherwise
- * cover the bookmark button and swallow its hover state even though the
- * button itself is inert today.
+ * The bookmark button alone carries `relative z-10` — not the row around it:
+ * the stretched link paints on top of the header in source order, which
+ * would otherwise swallow the button's disabled cursor under the link's
+ * pointer cursor. Scoping it to just the button, rather than the row, leaves
+ * the match pill beside it inside the card's link target, where it visually
+ * belongs — z-10 on the whole row made the pill a second dead zone with no
+ * navigation of its own.
  *
  * `scroll={false}`: opening a listing is a same-page navigation, and scrolling
  * the list back to the top to show a panel that was already visible is a
@@ -62,16 +65,19 @@ export function JobCard({
           </div>
         </div>
 
-        <div className="relative z-10 flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <MatchPill score={job.match} />
           {/* Inert, and shaped so that reads as deliberate: saving a listing
               needs a table nothing writes to yet. `disabled` rather than a
-              button that swallows the click. */}
+              button that swallows the click. `relative z-10` lives here, on
+              the button itself, so its disabled cursor still wins over the
+              stretched link beneath it without also lifting the pill next to
+              it out of the card's click target. */}
           <button
             type="button"
             disabled
             aria-label="Save this listing (not available on sample data)"
-            className="rounded p-2 text-text-subtle disabled:cursor-not-allowed"
+            className="relative z-10 rounded p-2 text-text-subtle disabled:cursor-not-allowed"
           >
             <Bookmark aria-hidden className="size-5" strokeWidth={1.75} />
           </button>
@@ -79,7 +85,7 @@ export function JobCard({
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3 className="text-2xl font-bold leading-tight tracking-tight text-text">
+        <h2 className="text-2xl font-bold leading-tight tracking-tight text-text">
           {/* The stretched link. `after:absolute inset-0` makes the whole card
               the hit target without nesting the button inside an anchor. */}
           <Link
@@ -89,7 +95,7 @@ export function JobCard({
           >
             {job.title}
           </Link>
-        </h3>
+        </h2>
 
         <div className="flex flex-wrap items-center gap-2">
           <Pill>{formatRange(job.salary, filters.period)}</Pill>

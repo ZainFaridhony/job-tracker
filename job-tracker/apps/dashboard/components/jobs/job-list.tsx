@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { SearchX } from 'lucide-react'
-import type { Job } from '@/lib/jobs/data'
+import { JOBS, type Job } from '@/lib/jobs/data'
 import { activeCount, type FilterState } from '@/lib/jobs/filters'
 import { Panel } from '@/components/dashboard/primitives'
 import { JobCard } from './job-card'
@@ -22,6 +22,13 @@ export function JobList({
   selectedId?: string
 }) {
   if (jobs.length === 0) {
+    // Derived, not typed: a hardcoded "six" starts lying the day JOBS gains a
+    // seventh entry, and this branch is the most-reached one in the whole
+    // screen (any narrowing filter reaches it), so it is the worst place to
+    // let copy drift from the data.
+    const filterCount = activeCount(filters)
+    const filterWord = filterCount === 1 ? 'filter is' : 'filters are'
+    const listingWord = JOBS.length === 1 ? 'listing' : 'listings'
     return (
       <Panel className="flex flex-col items-center gap-4 p-12 text-center">
         <span className="flex size-12 items-center justify-center rounded-full bg-surface-subtle text-text">
@@ -30,8 +37,7 @@ export function JobList({
         <div className="flex max-w-[420px] flex-col gap-2">
           <h2 className="text-xl font-bold tracking-tight text-text">No listings match</h2>
           <p className="text-sm leading-relaxed text-text-muted">
-            {activeCount(filters)} filters are narrowing six sample listings. Remove one, or
-            clear them all and start again.
+            {`${filterCount} ${filterWord} narrowing ${JOBS.length} sample ${listingWord}. Remove one, or clear them all and start again.`}
           </p>
         </div>
         <Link
