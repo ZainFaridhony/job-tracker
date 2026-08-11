@@ -45,7 +45,11 @@ export function perPeriod(yearly: number, period: SalaryPeriod): number {
 export function formatAmount(yearly: number, period: SalaryPeriod): string {
   const value = perPeriod(yearly, period)
   if (period === 'hourly') return `$${Math.round(value)}`
-  if (period === 'monthly') return `$${(value / 1000).toFixed(1)}k`
+  // Round with integer-safe arithmetic first (value / 100, then round to nearest
+  // tenth) before passing to toFixed for display. Deciding the rounding in binary
+  // floating point — (value / 1000).toFixed(1) — loses ties: 43800/12/1000 is
+  // exactly 3.65, and toFixed rounds it to "3.6" instead of "3.7".
+  if (period === 'monthly') return `$${(Math.round(value / 100) / 10).toFixed(1)}k`
   return `$${Math.round(value / 1000)}k`
 }
 

@@ -26,6 +26,15 @@ describe('formatAmount', () => {
     expect(formatAmount(140_000, 'hourly')).toBe('$67')
     expect(formatAmount(180_000, 'hourly')).toBe('$87')
   })
+
+  it('rounds a tie up, where binary floating point would round it down', () => {
+    // (v / 1000).toFixed(1) decides the rounding in binary, and one-decimal
+    // ties are almost never exactly representable — 43800/12/1000 is exactly
+    // 3.65 and toFixed(1) answers "3.6". The integer-safe form is what makes
+    // the decision before the value reaches toFixed.
+    expect(formatAmount(43_800, 'monthly')).toBe('$3.7k')
+    expect(formatAmount(142_200, 'monthly')).toBe('$11.9k')
+  })
 })
 
 describe('formatRange', () => {
