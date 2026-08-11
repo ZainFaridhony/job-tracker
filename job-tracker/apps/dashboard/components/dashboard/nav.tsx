@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Bell } from 'lucide-react'
 import { cn, Logo } from '@job-tracker/ui'
 import { signOutAction } from '@/lib/actions/auth'
 import { AccountMenu } from './account-menu'
@@ -102,14 +101,13 @@ export function DashboardNav({
           ))}
         </nav>
 
+        {/* No notification bell. There is no notification system — nothing
+            writes one, nothing stores one, nothing marks one read — so the
+            reference design's bell was an icon with a dot on it asserting
+            unread items that cannot exist. It also had nowhere to go: clicking
+            it did nothing, which is the same trade the section tabs failed
+            before they became routes. Add it back with the feature. */}
         <div className="flex items-center gap-3 justify-self-end">
-          <span className="relative flex size-9 items-center justify-center rounded-full text-text-muted">
-            <Bell aria-hidden className="size-5" strokeWidth={1.5} />
-            {/* A dot, not a count: there is nothing to count yet. */}
-            <span aria-hidden className="absolute right-2 top-2 size-1.5 rounded-full bg-ink" />
-            <span className="sr-only">Notifications</span>
-          </span>
-
           <AccountMenu name={name} email={email} initials={initials(name)} />
 
           {/* The form the menu's Sign out button submits, by id. Rendered here,
