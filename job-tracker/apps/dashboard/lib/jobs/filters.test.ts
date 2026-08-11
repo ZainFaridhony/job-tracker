@@ -199,7 +199,7 @@ describe('jobsHref', () => {
   it('encodes an id that needs it, and round-trips back through parseFilters', () => {
     const id = 'weird id/with?chars&stuff'
     const href = jobsHref(EMPTY_FILTERS, id)
-    expect(href).toBe(`/jobs?job=${encodeURIComponent(id)}`)
+    expect(href).toBe('/jobs?job=weird%20id%2Fwith%3Fchars%26stuff')
 
     const query = href.slice('/jobs?'.length)
     const raw = rawFromQuery(query)

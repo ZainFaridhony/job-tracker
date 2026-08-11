@@ -24,7 +24,11 @@ export default async function JobsPage({
   // An unknown ?job= is ignored rather than 404ing the whole screen: the id is
   // one parameter among a dozen, and losing the list because one of them went
   // stale would be a worse trade than quietly showing the list.
-  const selectedId = typeof raw.job === 'string' ? raw.job : undefined
+  //
+  // A repeated ?job=a&job=b takes the first value, matching filters.ts's own
+  // `one()` helper — the two modules would otherwise disagree about what a
+  // repeated parameter means.
+  const selectedId = Array.isArray(raw.job) ? raw.job[0] : raw.job
   const selected = selectedId ? jobById(selectedId) : undefined
 
   return (

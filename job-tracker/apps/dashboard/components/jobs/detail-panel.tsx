@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Share2, Sparkles, TrendingUp, Users, X } from 'lucide-react'
 import { Tile } from '@/components/dashboard/primitives'
-import { MODE_LABEL, type Job } from '@/lib/jobs/data'
+import { LEVEL_LABEL, MODE_LABEL, type Job } from '@/lib/jobs/data'
 import { postedAgo, verdictFor } from '@/lib/jobs/derive'
 import { jobsHref, type FilterState } from '@/lib/jobs/filters'
 import { formatRange } from '@/lib/jobs/salary'
@@ -31,10 +31,11 @@ import { PanelBehaviour } from './panel-behaviour'
  */
 export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }) {
   const closeHref = jobsHref(filters)
+  const panelId = `job-detail-panel-${job.id}`
 
   return (
     <>
-      <PanelBehaviour closeHref={closeHref} />
+      <PanelBehaviour closeHref={closeHref} panelId={panelId} />
 
       {/* aria-hidden: the same action is on a real, named button inside the
           panel, so this must not be a second announced control. */}
@@ -47,8 +48,10 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
       />
 
       <aside
+        id={panelId}
+        tabIndex={-1}
         aria-label={`${job.title} at ${job.company}`}
-        className="animate-slide-in fixed inset-y-0 right-0 z-[60] flex w-full flex-col border-l border-outline-subtle bg-surface shadow-[0_20px_60px_rgba(0,0,0,0.08)] motion-reduce:animate-none md:w-[560px] md:rounded-l-xl"
+        className="animate-slide-in fixed inset-y-0 right-0 z-[60] flex w-full flex-col overflow-hidden border-l border-outline-subtle bg-surface shadow-[0_20px_60px_rgba(0,0,0,0.08)] motion-reduce:animate-none md:w-[560px] md:rounded-l-xl"
       >
         <header className="flex flex-col gap-4 border-b border-outline-subtle p-6">
           <div className="flex items-start justify-between gap-3">
@@ -104,11 +107,14 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
                 <p className="text-xs text-text-on-ink/70">Matched with {job.resumeVersion}</p>
               </div>
             </div>
-            {/* Inert and labelled as such, for the same reason the card's
-                bookmark is: resume optimisation is not built. */}
+            {/* Inert and labelled as such, in the same voice as the card's
+                bookmark: resume optimisation is not built. The aria-label's
+                visible-text prefix keeps it satisfying WCAG 2.5.3 even though
+                the button also carries visible text. */}
             <button
               type="button"
               disabled
+              aria-label="Optimise resume (not available on sample data)"
               className="flex shrink-0 items-center gap-2 rounded bg-surface px-4 py-2 text-xs font-bold text-text disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Sparkles aria-hidden className="size-4" strokeWidth={1.75} />
@@ -154,13 +160,13 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
           <section className="grid grid-cols-2 gap-x-8 gap-y-4 border-b border-outline-subtle pb-6">
             {[
               { label: 'Location', value: `${job.city} (${MODE_LABEL[job.mode]})` },
-              { label: 'Experience', value: job.level },
+              { label: 'Experience', value: LEVEL_LABEL[job.level] },
               { label: 'Department', value: job.department },
               { label: 'Hiring manager', value: job.hiringManager },
             ].map((row) => (
               <div key={row.label} className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-text-muted">{row.label}</span>
-                <span className="text-sm font-semibold capitalize text-text">{row.value}</span>
+                <span className="text-sm font-semibold text-text">{row.value}</span>
               </div>
             ))}
           </section>
@@ -214,7 +220,7 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
               type="button"
               disabled
               aria-label="Share listing (not available on sample data)"
-              className="rounded border border-outline-subtle p-3 text-text-muted disabled:cursor-not-allowed"
+              className="rounded border border-outline p-3 text-text-muted disabled:cursor-not-allowed"
             >
               <Share2 aria-hidden className="size-4" strokeWidth={1.75} />
             </button>
