@@ -1,21 +1,57 @@
-import { Briefcase } from 'lucide-react'
 import { DashboardNav } from '@/components/dashboard/nav'
-import { SectionPlaceholder } from '@/components/dashboard/section-placeholder'
+import { DetailPanel } from '@/components/jobs/detail-panel'
+import { FilterBar } from '@/components/jobs/filter-bar'
+import { FilterSidebar } from '@/components/jobs/filter-sidebar'
+import { JobList } from '@/components/jobs/job-list'
+import { SampleBadge } from '@/components/jobs/primitives'
+import { SearchHeader } from '@/components/jobs/search-header'
+import { JOBS, jobById } from '@/lib/jobs/data'
+import { applyFilters, parseFilters, type RawParams } from '@/lib/jobs/filters'
+import { PAGE_SHELL } from '@/lib/jobs/layout'
 import { viewer } from '@/lib/dashboard/viewer'
 
 export const metadata = { title: 'Jobs · Job Tracker AI' }
 
-export default async function JobsPage() {
-  const { display, email } = await viewer()
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawParams>
+}) {
+  const [{ display, email }, raw] = await Promise.all([viewer(), searchParams])
+  const filters = parseFilters(raw)
+  const results = applyFilters(JOBS, filters)
+
+  // An unknown ?job= is ignored rather than 404ing the whole screen: the id is
+  // one parameter among a dozen, and losing the list because one of them went
+  // stale would be a worse trade than quietly showing the list.
+  //
+  // A repeated ?job=a&job=b takes the first value, matching filters.ts's own
+  // `one()` helper — the two modules would otherwise disagree about what a
+  // repeated parameter means.
+  const selectedId = Array.isArray(raw.job) ? raw.job[0] : raw.job
+  const selected = selectedId ? jobById(selectedId) : undefined
+
   return (
     <div className="min-h-screen bg-canvas">
       <DashboardNav current="/jobs" name={display} email={email} />
-      <main className="mx-auto max-w-[1600px] px-4 py-8 md:px-12">
-        <SectionPlaceholder
-          icon={<Briefcase aria-hidden className="size-6" strokeWidth={1.5} />}
-          title="Jobs"
-          description="Job discovery is not built. PRD NG2 currently rules it out, so this tab exists to keep the navigation honest rather than to hint at a feature that is on its way."
-        />
+
+      <main className={PAGE_SHELL}>
+        <div className="flex animate-rise flex-col items-start gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-text lg:text-4xl">Jobs</h1>
+          <SampleBadge />
+        </div>
+
+        <SearchHeader filters={filters} />
+        <FilterBar filters={filters} />
+
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
+          <FilterSidebar filters={filters} />
+          <div className="lg:col-span-3">
+            <JobList jobs={results} filters={filters} selectedId={selected?.id} />
+          </div>
+        </div>
+
+        {selected && <DetailPanel job={selected} filters={filters} />}
       </main>
     </div>
   )

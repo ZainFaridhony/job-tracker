@@ -53,6 +53,7 @@
   --animate-pop: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
   /* Horizontal grow, for a progress segment filling on arrival. Needs origin-left. */
   --animate-fill: fill 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-slide-in: slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes rise {
@@ -70,4 +71,8 @@
 @keyframes fill {
   from { transform: scaleX(0); }
   to   { transform: scaleX(1); }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: none; }
 }
