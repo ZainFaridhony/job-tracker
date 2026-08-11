@@ -106,4 +106,18 @@ describe('Select', () => {
     expect(selected).toHaveLength(1)
     expect(selected[0]).toContain('value="10"')
   })
+
+  it('associates itself with a form it does not sit inside', () => {
+    // The jobs sidebar and its submit button are in different subtrees, so the
+    // controls reach the form by id rather than by containment.
+    render(
+      <Select
+        label="Industry"
+        name="industry"
+        form="job-filters"
+        options={[{ value: 'saas', label: 'SaaS' }]}
+      />,
+    )
+    expect(screen.getByLabelText('Industry')).toHaveAttribute('form', 'job-filters')
+  })
 })

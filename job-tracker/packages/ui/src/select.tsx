@@ -23,6 +23,7 @@ export function Select({
   placeholder,
   error,
   className,
+  form,
 }: {
   label: string
   name: string
@@ -36,6 +37,9 @@ export function Select({
   /** Rendered beneath the field, not at the top of the card. */
   error?: string
   className?: string
+  /** Associates the control with a <form> elsewhere in the document, for a
+   *  layout that cannot put the two in the same subtree. */
+  form?: string
 }) {
   // Derived from `name` rather than useId so this stays renderable on the
   // server. Names are unique within a form, which is all the id has to be.
@@ -52,6 +56,7 @@ export function Select({
         <select
           id={name}
           name={name}
+          form={form}
           defaultValue={value ?? ''}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}

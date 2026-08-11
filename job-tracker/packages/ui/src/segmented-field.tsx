@@ -79,6 +79,7 @@ export function SegmentedField({
   options,
   value,
   error,
+  form,
 }: {
   name: string
   /** Omit inside an enclosing fieldset that already names the group. */
@@ -93,6 +94,8 @@ export function SegmentedField({
   /** Rendered beneath the track, so the message sits with the control it names
    *  rather than at the top of the card. */
   error?: string
+  /** Associates every radio with a <form> elsewhere in the document. */
+  form?: string
 }) {
   const n = Math.min(options.length, MAX_SEGMENTS)
   const shown = options.slice(0, n)
@@ -135,6 +138,7 @@ export function SegmentedField({
             id={`${name}-${o.value}`}
             type="radio"
             name={name}
+            form={form}
             value={o.value}
             defaultChecked={value === o.value}
             className={cn('sr-only', PEER[i])}

@@ -151,4 +151,21 @@ describe('SegmentedField', () => {
     expect(pill(container).className).not.toMatch(/#[0-9a-fA-F]{3,6}/)
     expect(pill(container).className).toContain('bg-surface')
   })
+
+  it('associates every radio with a form it does not sit inside', () => {
+    render(
+      <SegmentedField
+        name="period"
+        legend="Salary period"
+        form="job-filters"
+        options={[
+          { value: 'yearly', label: 'Yearly' },
+          { value: 'monthly', label: 'Monthly' },
+        ]}
+      />,
+    )
+    for (const radio of screen.getAllByRole('radio')) {
+      expect(radio).toHaveAttribute('form', 'job-filters')
+    }
+  })
 })
