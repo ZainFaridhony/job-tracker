@@ -52,9 +52,26 @@ describe('the corpus', () => {
     for (const s of SKILL_FACETS) expect(held, s).toContain(s)
   })
 
-  it('covers every work mode, so the mode filter is demonstrable', () => {
-    const modes = new Set(JOBS.map((j) => j.mode))
-    for (const m of WORK_MODES) expect(modes, m).toContain(m)
+  it('covers every facet vocabulary, so no filter is a permanent dead end', () => {
+    // A facet value nothing in the corpus holds is a checkbox that can only
+    // ever empty the list when ticked. One table, one loop, rather than a
+    // separate test per facet, so a new vocabulary is guarded by construction
+    // instead of by remembering to add another test for it.
+    const facets: ReadonlyArray<
+      readonly [string, readonly string[], (j: (typeof JOBS)[number]) => string]
+    > = [
+      ['WORK_MODES', WORK_MODES, (j) => j.mode],
+      ['EMPLOYMENT_TYPES', EMPLOYMENT_TYPES, (j) => j.type],
+      ['SENIORITY_LEVELS', SENIORITY_LEVELS, (j) => j.level],
+      ['COMPANY_SIZES', COMPANY_SIZES, (j) => j.size],
+      ['JOB_SOURCES', JOB_SOURCES, (j) => j.source],
+      ['JOB_FUNCTIONS', JOB_FUNCTIONS, (j) => j.fn],
+      ['INDUSTRIES', INDUSTRIES, (j) => j.industry],
+    ]
+    for (const [name, vocabulary, read] of facets) {
+      const held = new Set(JOBS.map(read))
+      for (const value of vocabulary) expect(held, `${name}: ${value}`).toContain(value)
+    }
   })
 
   it('finds a listing by id and nothing by a bad one', () => {

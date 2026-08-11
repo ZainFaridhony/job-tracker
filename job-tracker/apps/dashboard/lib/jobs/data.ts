@@ -23,8 +23,8 @@
  */
 
 export type WorkMode = 'remote' | 'hybrid' | 'onsite'
-export type EmploymentType = 'full-time' | 'part-time' | 'contract'
-export type SeniorityLevel = 'mid' | 'senior' | 'lead' | 'principal'
+export type EmploymentType = 'full-time' | 'contract'
+export type SeniorityLevel = 'senior' | 'lead' | 'principal'
 export type CompanySize = 'startup' | 'private' | 'public' | 'enterprise'
 export type JobSource = 'linkedin' | 'indeed' | 'glassdoor' | 'wellfound'
 
@@ -71,8 +71,8 @@ export type Job = {
 }
 
 export const WORK_MODES = ['remote', 'hybrid', 'onsite'] as const
-export const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract'] as const
-export const SENIORITY_LEVELS = ['mid', 'senior', 'lead', 'principal'] as const
+export const EMPLOYMENT_TYPES = ['full-time', 'contract'] as const
+export const SENIORITY_LEVELS = ['senior', 'lead', 'principal'] as const
 export const COMPANY_SIZES = ['startup', 'private', 'public', 'enterprise'] as const
 export const JOB_SOURCES = ['linkedin', 'indeed', 'glassdoor', 'wellfound'] as const
 export const JOB_FUNCTIONS = ['Design', 'Engineering', 'Data', 'Research', 'Security'] as const
@@ -93,12 +93,10 @@ export const MODE_LABEL: Record<WorkMode, string> = {
 
 export const TYPE_LABEL: Record<EmploymentType, string> = {
   'full-time': 'Full-time',
-  'part-time': 'Part-time',
   contract: 'Contract',
 }
 
 export const LEVEL_LABEL: Record<SeniorityLevel, string> = {
-  mid: 'Mid',
   senior: 'Senior',
   lead: 'Lead',
   principal: 'Principal',
@@ -264,7 +262,7 @@ export const JOBS: readonly Job[] = [
     postedHoursAgo: 96,
     salary: { min: 180_000, max: 240_000 },
     marketSalary: { min: 190_000, max: 250_000 },
-    type: 'full-time',
+    type: 'contract',
     level: 'principal',
     fn: 'Research',
     industry: 'AI',
@@ -274,7 +272,7 @@ export const JOBS: readonly Job[] = [
     department: 'Research',
     hiringManager: 'Director of Research',
     activelyHiring: false,
-    tags: ['Full-time', 'Hybrid', 'Research'],
+    tags: ['Contract', 'Hybrid', 'Research'],
     summary:
       'Run original research on evaluation and alignment for production language models, and publish what generalises.',
     responsibilities: [

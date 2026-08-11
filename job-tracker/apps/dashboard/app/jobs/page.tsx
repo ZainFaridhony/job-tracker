@@ -1,6 +1,9 @@
 import { DashboardNav } from '@/components/dashboard/nav'
+import { FilterBar } from '@/components/jobs/filter-bar'
+import { FilterSidebar } from '@/components/jobs/filter-sidebar'
 import { JobList } from '@/components/jobs/job-list'
 import { SampleBadge } from '@/components/jobs/primitives'
+import { SearchHeader } from '@/components/jobs/search-header'
 import { JOBS } from '@/lib/jobs/data'
 import { applyFilters, parseFilters, type RawParams } from '@/lib/jobs/filters'
 import { PAGE_SHELL } from '@/lib/jobs/layout'
@@ -27,7 +30,15 @@ export default async function JobsPage({
           <SampleBadge />
         </div>
 
-        <JobList jobs={results} filters={filters} />
+        <SearchHeader filters={filters} />
+        <FilterBar filters={filters} />
+
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
+          <FilterSidebar filters={filters} />
+          <div className="lg:col-span-3">
+            <JobList jobs={results} filters={filters} />
+          </div>
+        </div>
       </main>
     </div>
   )
