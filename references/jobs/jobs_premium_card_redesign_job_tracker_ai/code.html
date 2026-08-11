@@ -1,0 +1,234 @@
+<!DOCTYPE html><html class="stitch-anim-fade-in" lang="en" style="width: 1280px; height: 1513px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Job Tracker AI - Jobs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c8c6c5",
+                        "secondary-fixed-dim": "#c0c7d6",
+                        "primary-container": "#1c1b1b",
+                        "inverse-surface": "#2f3131",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-variant": "#e2e2e2",
+                        "on-primary-fixed": "#1c1b1b",
+                        "outline": "#747878",
+                        "surface-dim": "#dadada",
+                        "inverse-on-surface": "#f0f1f1",
+                        "tertiary": "#000000",
+                        "primary": "#000000",
+                        "surface-container": "#eeeeee",
+                        "outline-variant": "#c4c7c7",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9f9",
+                        "surface-container-high": "#e8e8e8",
+                        "secondary-container": "#dce2f3",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface-tint": "#5f5e5e",
+                        "on-secondary-fixed": "#151c27",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1a1c1c",
+                        "on-background": "#1a1c1c",
+                        "on-secondary": "#ffffff",
+                        "background": "#f9f9f9",
+                        "on-surface-variant": "#444748",
+                        "on-tertiary-container": "#838484",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "error-container": "#ffdad6",
+                        "secondary": "#585f6c",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#404754",
+                        "on-primary-container": "#858383",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-secondary-container": "#5e6572",
+                        "on-primary-fixed-variant": "#474646",
+                        "surface-bright": "#f9f9f9",
+                        "surface-container-low": "#f3f3f4",
+                        "tertiary-container": "#1a1c1c",
+                        "surface-container-highest": "#e2e2e2",
+                        "tertiary-fixed": "#e2e2e2",
+                        "secondary-fixed": "#dce2f3",
+                        "inverse-primary": "#c8c6c5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "container-max": "1200px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "display-mobile": ["Geist", "sans-serif"],
+                        "body-lg": ["Geist", "sans-serif"],
+                        "headline-lg": ["Geist", "sans-serif"],
+                        "display": ["Geist", "sans-serif"],
+                        "body-md": ["Geist", "sans-serif"],
+                        "label-sm": ["Geist", "sans-serif"],
+                        "headline-md": ["Geist", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "display-mobile": ["36px", { "lineHeight": "1.1", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }]
+                    },
+                    "boxShadow": {
+                        'premium': '0 20px 60px rgba(0,0,0,0.08)',
+                        'soft': '0 12px 40px rgba(0,0,0,0.06)',
+                        'card-hover': '0 15px 45px rgba(0,0,0,0.12)'
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; background-color: #FAFAFA; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c4c7c7; }
+
+        .job-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .job-card:hover { transform: translateY(-4px); box-shadow: 0 15px 45px rgba(0,0,0,0.12); border-color: #747878; }
+        
+        #drawer-overlay { transition: opacity 0.3s ease; }
+        #job-drawer { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateX(100%); }
+        #job-drawer.open { transform: translateX(0); }
+    </style>
+</head>
+<body class="text-on-surface min-h-screen pb-stack-lg" style="overflow: hidden;">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-[72px] bg-surface border-b border-surface-variant">
+<div class="flex items-center gap-stack-md">
+<img alt="Job Tracker Logo" class="h-8 w-8 object-contain rounded-DEFAULT" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsaL-yk5t5UMncNYi2RBXSmHNiUgqjqUeUe6QGl0FR-Es8l1vCSNtEaKG7C8QX6Lb7IXQovBWMu9HUOEenRC3xzGTedFoPLw_8sZWDF-i5KDDfqZDOMEOK01euOwtb51gqvI6NUOkiIyoa_j1dwLLfCJN4b-TvbhV9XeQNL075u12AHeptmRkvadgdX6Zn_UF7hho8Ks_tAl9fq8lVBERGhoE8jA5C4BuNLlXrn72vV_blqN3zoj8-xtTWAyp4dS2lRw">
+</div>
+<div class="hidden md:flex items-center gap-gutter"><div class="flex items-center bg-surface-container-low rounded-full p-1 gap-1"><a class="px-6 py-2 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Dashboard</a><a class="px-6 py-2 rounded-full font-body-md text-body-md bg-primary text-on-primary font-semibold" href="#">Jobs</a><a class="px-6 py-2 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Applications</a><a class="px-6 py-2 rounded-full font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Resume</a></div></div>
+<div class="flex items-center gap-stack-sm"><button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors"><span class="material-symbols-outlined">notifications</span></button><button class="ml-2 h-10 w-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;q=80&amp;w=150&amp;h=150" class="h-full w-full rounded-full object-cover" alt="User Profile"></button></div>
+</nav>
+<!-- Main Content Container -->
+<main class="pt-[104px] px-margin-desktop max-w-[1600px] mx-auto flex flex-col gap-stack-lg">
+<!-- Search Header -->
+<section class="bg-surface-container-lowest rounded-3xl p-stack-lg shadow-premium border border-surface-variant">
+<div class="grid grid-cols-1 md:grid-cols-5 gap-stack-md items-end">
+<div class="md:col-span-2">
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">Job Title, Keywords</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-surface border border-surface-variant rounded-lg font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="e.g. Senior Product Designer" type="text">
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">Location</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">location_on</span>
+<input class="w-full pl-10 pr-4 py-3 bg-surface border border-surface-variant rounded-lg font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Remote or City" type="text">
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">Work Mode</label>
+<select class="w-full px-4 py-3 bg-surface border border-surface-variant rounded-lg font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors appearance-none">
+<option>Remote</option>
+<option>Hybrid</option>
+<option>On-site</option>
+</select>
+</div>
+<div>
+<button class="w-full bg-primary text-on-primary py-3 px-6 rounded-lg font-body-md text-body-md font-semibold hover:bg-inverse-surface transition-colors h-[46px]">Search</button>
+</div>
+</div>
+<div class="mt-stack-md flex flex-wrap items-center gap-stack-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Trending:</span>
+<span class="px-3 py-1 bg-surface border border-surface-variant rounded-full font-label-sm text-label-sm cursor-pointer hover:bg-surface-variant transition-colors">Frontend</span>
+<span class="px-3 py-1 bg-surface border border-surface-variant rounded-full font-label-sm text-label-sm cursor-pointer hover:bg-surface-variant transition-colors">AI Engineer</span>
+<span class="px-3 py-1 bg-surface border border-surface-variant rounded-full font-label-sm text-label-sm cursor-pointer hover:bg-surface-variant transition-colors">Product Manager</span>
+</div>
+</section><div class="sticky top-[176px] z-40 bg-surface/80 backdrop-blur-sm py-4 border-b border-surface-variant flex items-center justify-between gap-4"><div class="flex items-center bg-surface-container-low rounded-full p-1 gap-1 mr-4"><button class="px-4 py-1 rounded-full font-label-sm text-label-sm bg-primary text-on-primary font-semibold transition-colors">Yearly</button><button class="px-4 py-1 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Monthly</button><button class="px-4 py-1 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Hourly</button></div>
+<div class="flex items-center gap-4 overflow-x-auto">
+<span class="font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap">12 Active Filters:</span>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm flex items-center gap-1">Engineering <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span></span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm flex items-center gap-1">Remote <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span></span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm flex items-center gap-1">Senior <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span></span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full font-label-sm text-label-sm flex items-center gap-1">$140k+ <span class="material-symbols-outlined text-[14px] cursor-pointer">close</span></span>
+</div>
+</div>
+<button class="font-label-sm text-label-sm text-primary font-semibold hover:underline whitespace-nowrap">Clear All</button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-gutter items-start">
+<!-- Left Sidebar Filters -->
+<aside class="hidden lg:flex flex-col gap-stack-md sticky top-[104px] bg-surface-container-lowest rounded-3xl p-stack-md shadow-soft border border-surface-variant h-fit"><div class="flex justify-between items-center border-b border-surface-variant pb-stack-sm mb-2"><h3 class="font-headline-md text-headline-md text-body-lg font-semibold">Filters</h3><button class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Clear All</button></div><div class="flex flex-col gap-1 pr-2 max-h-[calc(100vh-200px)]"><!-- Job Information --><details class="group border-b border-surface-variant pb-2" open=""><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Job Information</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="flex flex-col gap-3 pt-2"><div class="relative"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><select class="w-full pl-10 pr-4 py-2 bg-surface border border-surface-variant rounded-lg font-body-md text-body-md focus:ring-primary appearance-none"><option>Select Job Function</option><option>Engineering</option><option>Design</option><option>Marketing</option></select></div><div class="relative"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><select class="w-full pl-10 pr-4 py-2 bg-surface border border-surface-variant rounded-lg font-body-md text-body-md focus:ring-primary appearance-none"><option>Select Industry</option><option>Technology</option><option>Finance</option><option>Healthcare</option><option>AI</option><option>SaaS</option></select></div></div></details><!-- Experience & Employment Type --><details class="group border-b border-surface-variant pb-2"><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Experience &amp; Type</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="grid grid-cols-2 gap-2 pt-2"><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input checked="" class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Full-time</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Part-time</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Senior</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Lead</label></div></details><!-- Salary --><details class="group border-b border-surface-variant pb-2"><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Salary</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="flex flex-col gap-2 pt-2"><div class="flex gap-2"><select class="flex-1 bg-surface border border-surface-variant rounded-lg py-1 px-2 text-label-sm focus:ring-primary"><option>USD</option><option>SGD</option></select><select class="flex-1 bg-surface border border-surface-variant rounded-lg py-1 px-2 text-label-sm focus:ring-primary"><option>Year</option><option>Month</option></select></div><div class="flex gap-2"><input class="w-full bg-surface border border-surface-variant rounded-lg py-1.5 px-3 text-body-md focus:ring-primary" placeholder="Min" type="number"><input class="w-full bg-surface border border-surface-variant rounded-lg py-1.5 px-3 text-body-md focus:ring-primary" placeholder="Max" type="number"></div></div></details><!-- Company --><details class="group border-b border-surface-variant pb-2"><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Company</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="grid grid-cols-2 gap-2 pt-2"><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Startup</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Public</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Enterprise</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Private</label></div></details><!-- Skills --><details class="group border-b border-surface-variant pb-2"><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Skills (5)</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="flex flex-col gap-2 pt-2"><input class="w-full px-3 py-2 bg-surface border border-surface-variant rounded-lg font-body-md text-body-md focus:ring-primary" placeholder="Search skills..." type="text"><div class="flex flex-wrap gap-1.5 mt-1"><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">Python <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">React <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">Docker <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">AWS <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">PostgreSQL <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span></div></div></details><!-- Languages --><details class="group border-b border-surface-variant pb-2"><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Languages</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="flex flex-col gap-2 pt-2"><div class="flex flex-wrap gap-1.5"><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">English <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">Japanese <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span><span class="px-2 py-1 bg-surface-container-high rounded-full text-[12px] flex items-center gap-1">Indonesian <span class="material-symbols-outlined text-[14px] cursor-pointer">add</span></span></div></div></details><!-- Posted Date & Applicants --><details class="group border-b border-surface-variant pb-2"><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Posted &amp; Applicants</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="flex flex-col gap-3 pt-2"><div class="flex flex-col gap-1.5"><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> 24 Hours</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> 7 Days</label></div><div class="flex flex-col gap-1.5 border-t border-surface-variant pt-2"><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded-full border-surface-variant text-primary focus:ring-primary" name="density" type="radio"> Under 10</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded-full border-surface-variant text-primary focus:ring-primary" name="density" type="radio"> 10-50</label></div></div></details><!-- Sources --><details class="group pb-2"><summary class="flex justify-between items-center py-2 cursor-pointer list-none"><span class="font-label-sm font-semibold">Sources</span><span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span></summary><div class="flex flex-col gap-2 pt-2"><input class="w-full px-3 py-2 bg-surface border border-surface-variant rounded-lg font-body-md text-body-md focus:ring-primary mb-2" placeholder="Search sources..." type="text"><div class="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1"><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> LinkedIn</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Indeed</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Glassdoor</label><label class="flex items-center gap-2 font-body-md text-body-md cursor-pointer"><input class="rounded border-surface-variant text-primary focus:ring-primary" type="checkbox"> Wellfound</label></div></div></details></div></aside>
+<!-- Main Content Area (Jobs Grid) -->
+<div class="lg:col-span-3 flex flex-col gap-stack-md">
+<!-- Jobs Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Job Card 1 -->
+<div class="job-card bg-surface-container-lowest rounded-3xl p-stack-lg border border-surface-variant shadow-soft cursor-pointer flex flex-col gap-6" onclick="toggleDrawer()"><div class="flex justify-between items-start"><div class="flex items-center gap-4"><img class="h-14 w-14 rounded-2xl object-cover border border-surface-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpSSEKYZP2SXfX_uOVCpBrWW0JmH0uxymtPfvgpW3OPyquXziXJ4AxKtBZt9YB7TUzWOSQ3Saa1hGtSD-Q-VsJup11_Ncsy-mWZqemy1tFAkTxlFxH05UA4U_wGDdkGnnNVGvwijHIF-K2UbOO661XG2g-uHyHse9IIpYGmbPOM4Cl6mLHAq54YuCf5hADsGan3Yjuuz0Tej1j5ftT3NoH9DcD1ODVefIilWcjE7TY0p957iw1UKNM"><div class="flex flex-col"><div class="flex items-center gap-1"><h3 class="font-body-lg text-body-lg font-bold">Acme Corp</h3><span class="material-symbols-outlined text-[16px] text-primary fill">verified</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">San Francisco, CA • Remote</span></div></div><div class="flex items-center gap-2"><span class="px-3 py-1 bg-primary text-on-primary rounded-full font-label-sm text-[11px] font-bold tracking-tight" title="This score estimates how well your current Master Resume matches this job description based on skills, keywords, experience, ATS compatibility, and previous resume performance.">94% MATCH</span><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">bookmark_border</span></button></div></div><div class="flex flex-col gap-4"><h2 class="font-display-mobile text-[28px] leading-tight tracking-tight text-primary">Senior Product Designer</h2><div class="flex flex-col gap-2"><div class="flex flex-wrap gap-2"><span class="px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full font-label-sm text-label-sm font-medium">$140k - $180k / yr</span></div><div class="flex items-center gap-2 px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full w-fit"><span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">group</span>24 Applicants</span><span class="w-px h-3 bg-outline-variant mx-1"></span><span class="flex items-center gap-1 font-label-sm text-label-sm font-bold text-[#1b5e20]" title="Competition is estimated using: • Number of applicants • Job posting age • Historical competition for similar roles • Hiring trends. This is an AI estimation and updates automatically."><span class="w-2 h-2 rounded-full bg-[#4caf50]"></span>Low Competition <span class="material-symbols-outlined text-[14px] font-normal">info</span></span></div></div></div></div>
+<!-- Job Card 2 -->
+<div class="job-card bg-surface-container-lowest rounded-3xl p-stack-lg border border-surface-variant shadow-soft cursor-pointer flex flex-col gap-6" onclick="toggleDrawer()"><div class="flex justify-between items-start"><div class="flex items-center gap-4"><img class="h-14 w-14 rounded-2xl object-cover border border-surface-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpQKS9wscpOHA-kDdbCLe0Az2JMNVEB_FBiVxIvRGCdzgkseqHtPBMmE7OAgeTtGdTmLYaWAmNfN5ymL0I8q97eHsVbXa9RuqazCQ2oG-lp3pIfXG9U4lXriL9VqYW_w9Bftktccu5p80zmSwRo1uA4LccI887wVp2HdmkbArN0pTDhCfkUah5KQbJKhQEEkl9FBV_yWGvMgiaYl9jlzJ6qNE9tQwWKU5mR7zeEfgZPCAZlnaG3HDx"><div class="flex flex-col"><div class="flex items-center gap-1"><h3 class="font-body-lg text-body-lg font-bold">GlobalPay</h3><span class="material-symbols-outlined text-[16px] text-primary fill">verified</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">New York, NY • Hybrid</span></div></div><div class="flex items-center gap-2"><span class="px-3 py-1 bg-primary text-on-primary rounded-full font-label-sm text-[11px] font-bold tracking-tight" title="This score estimates how well your current Master Resume matches this job description based on skills, keywords, experience, ATS compatibility, and previous resume performance.">88% MATCH</span><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">bookmark_border</span></button></div></div><div class="flex flex-col gap-4"><h2 class="font-display-mobile text-[28px] leading-tight tracking-tight text-primary">Lead UI/UX Designer</h2><div class="flex flex-col gap-2"><div class="flex flex-wrap gap-2"><span class="px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full font-label-sm text-label-sm font-medium">$160k - $200k / yr</span></div><div class="flex items-center gap-2 px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full w-fit"><span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">group</span>42 Applicants</span><span class="w-px h-3 bg-outline-variant mx-1"></span><span class="flex items-center gap-1 font-label-sm text-label-sm font-bold text-[#e65100]" title="Competition is estimated using: • Number of applicants • Job posting age • Historical competition for similar roles • Hiring trends. This is an AI estimation and updates automatically."><span class="w-2 h-2 rounded-full bg-[#ffb300]"></span>Medium Competition <span class="material-symbols-outlined text-[14px] font-normal">info</span></span></div></div></div></div>
+<!-- Job Card 3 -->
+<div class="job-card bg-surface-container-lowest rounded-3xl p-stack-lg border border-surface-variant shadow-soft cursor-pointer flex flex-col gap-6" onclick="toggleDrawer()"><div class="flex justify-between items-start"><div class="flex items-center gap-4"><div class="h-14 w-14 rounded-2xl bg-surface-container-high flex items-center justify-center border border-surface-variant"><span class="material-symbols-outlined text-primary text-[32px]">waves</span></div><div class="flex flex-col"><div class="flex items-center gap-1"><h3 class="font-body-lg text-body-lg font-bold">TechFlow</h3><span class="material-symbols-outlined text-[16px] text-primary fill">verified</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Austin, TX • Remote</span></div></div><div class="flex items-center gap-2"><span class="px-3 py-1 bg-primary text-on-primary rounded-full font-label-sm text-[11px] font-bold tracking-tight" title="This score estimates how well your current Master Resume matches this job description based on skills, keywords, experience, ATS compatibility, and previous resume performance.">82% MATCH</span><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">bookmark_border</span></button></div></div><div class="flex flex-col gap-4"><h2 class="font-display-mobile text-[28px] leading-tight tracking-tight text-primary">Lead Frontend Engineer</h2><div class="flex flex-col gap-2"><div class="flex flex-wrap gap-2"><span class="px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full font-label-sm text-label-sm font-medium">$150k - $195k / yr</span></div><div class="flex items-center gap-2 px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full w-fit"><span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">group</span>12 Applicants</span><span class="w-px h-3 bg-outline-variant mx-1"></span><span class="flex items-center gap-1 font-label-sm text-label-sm font-bold text-[#1b5e20]" title="Competition is estimated using: • Number of applicants • Job posting age • Historical competition for similar roles • Hiring trends. This is an AI estimation and updates automatically."><span class="w-2 h-2 rounded-full bg-[#4caf50]"></span>Low Competition <span class="material-symbols-outlined text-[14px] font-normal">info</span></span></div></div></div></div>
+<!-- Job Card 4 -->
+<div class="job-card bg-surface-container-lowest rounded-3xl p-stack-lg border border-surface-variant shadow-soft cursor-pointer flex flex-col gap-6" onclick="toggleDrawer()"><div class="flex justify-between items-start"><div class="flex items-center gap-4"><div class="h-14 w-14 rounded-2xl bg-surface-container-high flex items-center justify-center border border-surface-variant"><span class="material-symbols-outlined text-primary text-[32px]">neurology</span></div><div class="flex flex-col"><div class="flex items-center gap-1"><h3 class="font-body-lg text-body-lg font-bold">Nexus AI</h3><span class="material-symbols-outlined text-[16px] text-primary fill">verified</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Seattle, WA • Hybrid</span></div></div><div class="flex items-center gap-2"><span class="px-3 py-1 bg-primary text-on-primary rounded-full font-label-sm text-[11px] font-bold tracking-tight" title="This score estimates how well your current Master Resume matches this job description based on skills, keywords, experience, ATS compatibility, and previous resume performance.">76% MATCH</span><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">bookmark_border</span></button></div></div><div class="flex flex-col gap-4"><h2 class="font-display-mobile text-[28px] leading-tight tracking-tight text-primary">AI Research Scientist</h2><div class="flex flex-col gap-2"><div class="flex flex-wrap gap-2"><span class="px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full font-label-sm text-label-sm font-medium">$180k - $240k / yr</span></div><div class="flex items-center gap-2 px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full w-fit"><span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">group</span>156 Applicants</span><span class="w-px h-3 bg-outline-variant mx-1"></span><span class="flex items-center gap-1 font-label-sm text-label-sm font-bold text-[#b71c1c]" title="Competition is estimated using: • Number of applicants • Job posting age • Historical competition for similar roles • Hiring trends. This is an AI estimation and updates automatically."><span class="w-2 h-2 rounded-full bg-[#f44336]"></span>High Competition <span class="material-symbols-outlined text-[14px] font-normal">info</span></span></div></div></div></div>
+<!-- Job Card 5 -->
+<div class="job-card bg-surface-container-lowest rounded-3xl p-stack-lg border border-surface-variant shadow-soft cursor-pointer flex flex-col gap-6" onclick="toggleDrawer()"><div class="flex justify-between items-start"><div class="flex items-center gap-4"><div class="h-14 w-14 rounded-2xl bg-surface-container-high flex items-center justify-center border border-surface-variant"><span class="material-symbols-outlined text-primary text-[32px]">cloud</span></div><div class="flex flex-col"><div class="flex items-center gap-1"><h3 class="font-body-lg text-body-lg font-bold">CloudScale</h3><span class="material-symbols-outlined text-[16px] text-primary fill">verified</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Denver, CO • Remote</span></div></div><div class="flex items-center gap-2"><span class="px-3 py-1 bg-primary text-on-primary rounded-full font-label-sm text-[11px] font-bold tracking-tight" title="This score estimates how well your current Master Resume matches this job description based on skills, keywords, experience, ATS compatibility, and previous resume performance.">79% MATCH</span><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">bookmark_border</span></button></div></div><div class="flex flex-col gap-4"><h2 class="font-display-mobile text-[28px] leading-tight tracking-tight text-primary">Data Systems Architect</h2><div class="flex flex-col gap-2"><div class="flex flex-wrap gap-2"><span class="px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full font-label-sm text-label-sm font-medium">$170k - $210k / yr</span></div><div class="flex items-center gap-2 px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full w-fit"><span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">group</span>186 Applicants</span><span class="w-px h-3 bg-outline-variant mx-1"></span><span class="flex items-center gap-1 font-label-sm text-label-sm font-bold text-[#b71c1c]" title="Competition is estimated using: • Number of applicants • Job posting age • Historical competition for similar roles • Hiring trends. This is an AI estimation and updates automatically."><span class="w-2 h-2 rounded-full bg-[#f44336]"></span>High Competition <span class="material-symbols-outlined text-[14px] font-normal">info</span></span></div></div></div></div>
+<!-- Job Card 6 -->
+<div class="job-card bg-surface-container-lowest rounded-3xl p-stack-lg border border-surface-variant shadow-soft cursor-pointer flex flex-col gap-6" onclick="toggleDrawer()"><div class="flex justify-between items-start"><div class="flex items-center gap-4"><div class="h-14 w-14 rounded-2xl bg-surface-container-high flex items-center justify-center border border-surface-variant"><span class="material-symbols-outlined text-primary text-[32px]">security</span></div><div class="flex flex-col"><div class="flex items-center gap-1"><h3 class="font-body-lg text-body-lg font-bold">SecureNet</h3><span class="material-symbols-outlined text-[16px] text-primary fill">verified</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Boston, MA • On-site</span></div></div><div class="flex items-center gap-2"><span class="px-3 py-1 bg-primary text-on-primary rounded-full font-label-sm text-[11px] font-bold tracking-tight" title="This score estimates how well your current Master Resume matches this job description based on skills, keywords, experience, ATS compatibility, and previous resume performance.">85% MATCH</span><button class="p-2 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined">bookmark_border</span></button></div></div><div class="flex flex-col gap-4"><h2 class="font-display-mobile text-[28px] leading-tight tracking-tight text-primary">Cybersecurity Lead</h2><div class="flex flex-col gap-2"><div class="flex flex-wrap gap-2"><span class="px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full font-label-sm text-label-sm font-medium">$165k - $205k / yr</span></div><div class="flex items-center gap-2 px-4 py-1.5 bg-surface-container-low border border-surface-variant rounded-full w-fit"><span class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">group</span>67 Applicants</span><span class="w-px h-3 bg-outline-variant mx-1"></span><span class="flex items-center gap-1 font-label-sm text-label-sm font-bold text-[#e65100]" title="Competition is estimated using: • Number of applicants • Job posting age • Historical competition for similar roles • Hiring trends. This is an AI estimation and updates automatically."><span class="w-2 h-2 rounded-full bg-[#ffb300]"></span>Medium Competition <span class="material-symbols-outlined text-[14px] font-normal">info</span></span></div></div></div></div>
+</div>
+</div>
+</div>
+</main>
+<!-- Job Details Drawer Overlay -->
+<div class="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[60] opacity-0" id="drawer-overlay" onclick="toggleDrawer()" style="opacity: 1;"></div>
+<!-- Job Details Drawer -->
+<aside class="fixed top-0 right-0 h-full w-full md:w-[40%] bg-surface-container-lowest z-[70] shadow-premium flex flex-col border-l border-surface-variant open" id="job-drawer"></aside>
+<script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('job-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            
+            if (drawer.classList.contains('open')) {
+                drawer.classList.remove('open');
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+                document.body.style.overflow = '';
+            } else {
+                overlay.classList.remove('hidden');
+                void overlay.offsetWidth; 
+                overlay.style.opacity = '1';
+                drawer.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+    </script>
+
+
+
+
+
+
+</body></html>
