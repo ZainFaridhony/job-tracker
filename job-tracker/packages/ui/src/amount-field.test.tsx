@@ -124,4 +124,46 @@ describe('AmountField', () => {
     expect(html).toContain('120,000')
     expect(html).toContain('$')
   })
+
+  it('associates both controls with a form neither sits inside', () => {
+    // The jobs filter sidebar renders inside the results grid while its form
+    // element is in the search card above it, so the amount and the currency
+    // reach the form by id. One missing `form` here and that control is
+    // silently dropped from every submission.
+    render(
+      <AmountField
+        label="Minimum"
+        name="salaryMin"
+        currencyName="currency"
+        currencies={CURRENCIES}
+        form="job-filters"
+      />,
+    )
+    expect(screen.getByLabelText('Minimum')).toHaveAttribute('form', 'job-filters')
+    expect(screen.getByLabelText('Currency')).toHaveAttribute('form', 'job-filters')
+  })
+
+  it('renders a hint under the field only when given one', () => {
+    const { unmount } = render(
+      <AmountField
+        label="Minimum"
+        name="salaryMin"
+        currencyName="currency"
+        currencies={CURRENCIES}
+        hint="Also the currency every salary is shown in."
+      />,
+    )
+    expect(screen.getByText('Also the currency every salary is shown in.')).toBeInTheDocument()
+    unmount()
+
+    render(
+      <AmountField
+        label="Minimum"
+        name="salaryMin"
+        currencyName="currency"
+        currencies={CURRENCIES}
+      />,
+    )
+    expect(screen.queryByText(/Also the currency/)).toBeNull()
+  })
 })

@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { Checkbox, Input, SegmentedField, Select } from '@job-tracker/ui'
+import { AmountField, Checkbox, SegmentedField, Select } from '@job-tracker/ui'
 import { Panel } from '@/components/dashboard/primitives'
 import {
   COMPANY_SIZES,
@@ -148,15 +148,14 @@ export function FilterSidebar({
       </Section>
 
       <Section title="Salary" open>
-        {/* Two display units and one filter, in that order, because the units
-            are what the figure below is read in.
+        {/* The period first, then the threshold with its currency built in.
 
-            Neither unit is a filter: both change how every salary on the screen
-            reads and neither can admit or reject a listing. That is why they
-            produce no chip and are not counted — see FilterState — and why
-            "Clear all" keeps them. They live here rather than in the sticky bar
-            because a unit belongs beside the figure it describes, and because
-            the bar is now conditional. */}
+            Neither the period nor the currency is a filter: both change how
+            every salary on the screen reads and neither can admit or reject a
+            listing. That is why they produce no chip, are not counted — see
+            FilterState — and survive "Clear all". They live here rather than in
+            the sticky bar because a unit belongs beside the figure it
+            describes, and because the bar is now conditional. */}
         <SegmentedField
           name="period"
           legend="Show salaries as"
@@ -165,36 +164,33 @@ export function FilterSidebar({
           options={SALARY_PERIODS}
         />
 
-        <Select
-          label="Currency"
-          name="currency"
-          form={FILTER_FORM_ID}
-          value={filters.currency}
-          options={SALARY_CURRENCIES.map((c) => ({
-            value: c.value,
-            label: `${c.label} (${c.symbol})`,
-          }))}
-        />
+        {/* Amount and currency in one control, the same one the onboarding
+            wizard and settings use for a target salary. A currency belongs
+            beside the figure it denominates; two separate pickers made the
+            reader carry that association themselves.
 
-        {/* One floor, not a min/max pair. A maximum on a salary search filters
+            One floor, not a min/max pair. A maximum on a salary search filters
             out the listings you would most want, which is why the chip reads
-            "$160k+" rather than a band.
+            "$160k+" rather than a band. Yearly regardless of the period picked
+            above: the period is how results are read, not a second axis to type
+            a threshold on.
 
-            Typed in the currency picked above, and yearly regardless of the
-            period picked above that — the period is how the results are read,
-            not a second axis to type a threshold on. The label carries both
-            facts because switching currency reinterprets whatever is already in
-            the box, which is only defensible if the box says what it is
-            counting. */}
-        <Input
-          label={`Minimum, per year (${filters.currency})`}
+            The hint is load-bearing, not decoration. This currency is also the
+            one every salary on the screen converts into, and switching it
+            reinterprets whatever is already in the box — defensible only if the
+            control says so. */}
+        <AmountField
+          label="Minimum, per year"
           name="salaryMin"
+          currencyName="currency"
           form={FILTER_FORM_ID}
-          inputMode="numeric"
+          currencies={SALARY_CURRENCIES}
+          currency={filters.currency}
           defaultValue={filters.salaryMin === null ? '' : String(filters.salaryMin)}
           // Converted rather than hardcoded, so the hint is plausible in every
           // currency instead of suggesting 160000 to someone reading rupiah.
           placeholder={String(Math.round(inCurrency(160_000, filters.currency)))}
+          hint="Every salary on this screen is shown in this currency."
         />
       </Section>
 
