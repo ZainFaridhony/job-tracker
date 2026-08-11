@@ -50,6 +50,8 @@ export function AmountField({
   currency,
   defaultValue,
   placeholder,
+  hint,
+  form,
 }: {
   label: string
   name: string
@@ -60,6 +62,12 @@ export function AmountField({
   /** The stored amount. Digits, formatted for display on first paint. */
   defaultValue?: string | null
   placeholder?: string
+  /** A line under the field, for when the currency means more than the amount
+   *  it sits beside — the jobs filter reads every salary on the screen in it. */
+  hint?: string
+  /** Associates both controls with a <form> elsewhere in the document, for a
+   *  layout that cannot put them in the same subtree. */
+  form?: string
 }) {
   const id = useId()
   const initialCode = currencies.find((c) => c.value === currency)?.value ?? currencies[0]!.value
@@ -92,6 +100,7 @@ export function AmountField({
         <input
           id={id}
           name={name}
+          form={form}
           value={shown}
           onChange={(e) => setShown(group(normalise(e.target.value)))}
           // Not type="number": it forbids the separators and adds a spinner.
@@ -111,6 +120,7 @@ export function AmountField({
           <select
             id={`${id}-currency`}
             name={currencyName}
+            form={form}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             aria-label="Currency"
@@ -130,6 +140,8 @@ export function AmountField({
           <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-text-subtle" />
         </div>
       </div>
+
+      {hint && <p className="text-xs leading-relaxed text-text-muted">{hint}</p>}
     </div>
   )
 }

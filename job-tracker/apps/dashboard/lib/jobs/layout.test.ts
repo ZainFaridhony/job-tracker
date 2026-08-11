@@ -1,6 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { BAR_HEIGHT, NAV_HEIGHT, STICKY_BAR, STICKY_SIDEBAR } from './layout'
+import {
+  BAR_HEIGHT,
+  NAV_HEIGHT,
+  SIDEBAR_GUTTER,
+  STICKY_BAR,
+  STICKY_SIDEBAR,
+  STICKY_SIDEBAR_NO_BAR,
+  stickySidebar,
+} from './layout'
 
 describe('sticky offsets', () => {
   it('parks the filter bar exactly under the nav', () => {
@@ -12,6 +20,27 @@ describe('sticky offsets', () => {
 
   it('parks the sidebar under both of them', () => {
     expect(STICKY_SIDEBAR).toContain(`top-[${NAV_HEIGHT + BAR_HEIGHT}px]`)
+  })
+
+  it('parks the sidebar under the nav alone when the bar is not rendered', () => {
+    // The bar holds only chips now, so it is absent on an untouched screen —
+    // the majority of visits. Leaving the offset at 136 there left a 64px band
+    // of scrolling page above the sidebar.
+    expect(STICKY_SIDEBAR_NO_BAR).toContain(`top-[${NAV_HEIGHT}px]`)
+    expect(stickySidebar(true)).toBe(STICKY_SIDEBAR)
+    expect(stickySidebar(false)).toBe(STICKY_SIDEBAR_NO_BAR)
+  })
+
+  it('leaves the same gutter under the sidebar either way', () => {
+    // Both max-heights are viewport minus the offset minus one gutter, so the
+    // sidebar's last section clears the bottom edge whether the bar is there
+    // or not. Pinned because these are hand-written literals, not arithmetic.
+    expect(STICKY_SIDEBAR).toContain(
+      `max-h-[calc(100dvh-${NAV_HEIGHT + BAR_HEIGHT + SIDEBAR_GUTTER}px)]`,
+    )
+    expect(STICKY_SIDEBAR_NO_BAR).toContain(
+      `max-h-[calc(100dvh-${NAV_HEIGHT + SIDEBAR_GUTTER}px)]`,
+    )
   })
 
   it('keeps the sidebar below the bar in the stacking order', () => {

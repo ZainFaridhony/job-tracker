@@ -184,6 +184,70 @@ describe('toQuery', () => {
   })
 })
 
+describe('currency', () => {
+  it('validates against the shared vocabulary and falls back to the base', () => {
+    expect(parseFilters({ currency: 'IDR' }).currency).toBe('IDR')
+    expect(parseFilters({ currency: 'XYZ' }).currency).toBe('USD')
+    expect(parseFilters({}).currency).toBe('USD')
+  })
+
+  it('produces no chip and is not counted, because it is a unit not a filter', () => {
+    // Same rule as `period`. Ticking a display unit should never make the
+    // screen claim a filter is narrowing anything.
+    expect(activeChips(parseFilters({ currency: 'IDR' }))).toEqual([])
+    expect(activeCount(parseFilters({ currency: 'IDR', period: 'monthly' }))).toBe(0)
+  })
+
+  it('is omitted from the query when it is the base, and round-trips when it is not', () => {
+    expect(toQuery(parseFilters({ currency: 'USD' }))).toBe('')
+    expect(toQuery(parseFilters({ currency: 'IDR' }))).toBe('currency=IDR')
+
+    const f = parseFilters({ currency: 'JPY', period: 'monthly', mode: 'remote' })
+    expect(parseFilters(rawFromQuery(toQuery(f)))).toEqual(f)
+  })
+
+  it('survives Clear all, like the period does', () => {
+    const f = parseFilters({ currency: 'IDR', period: 'monthly', mode: 'remote', q: 'react' })
+    const cleared = parseFilters(rawFromQuery(clearAllHref(f).replace('/jobs?', '')))
+    expect(cleared.currency).toBe('IDR')
+    expect(cleared.period).toBe('monthly')
+    expect(activeCount(cleared)).toBe(0)
+  })
+
+  it('renders the salary chip in the currency it was typed in', () => {
+    // The stored figure IS the typed figure — converting it again for display
+    // would show a number the reader never entered.
+    expect(activeChips(parseFilters({ salaryMin: '3200000000', currency: 'IDR' }))[0]?.label).toBe(
+      'Rp3.2B+',
+    )
+    expect(activeChips(parseFilters({ salaryMin: '160000' }))[0]?.label).toBe('$160k+')
+  })
+})
+
+describe('applyFilters interprets the salary floor in the chosen currency', () => {
+  it('converts the threshold into the corpus base before comparing', () => {
+    // 3.2B IDR is about $202.5k, so it keeps the three listings whose band
+    // reaches that and drops GlobalPay's $200k, which does not.
+    const kept = applyFilters(JOBS, parseFilters({ salaryMin: '3200000000', currency: 'IDR' }))
+    expect(kept.map((j) => j.company).sort()).toEqual(['CloudScale', 'Nexus AI', 'SecureNet'])
+  })
+
+  it('reads the same number differently under a different currency', () => {
+    // This is the consequence of the input being denominated in the displayed
+    // currency, and why the field's label names it. 3.2 billion dollars is a
+    // floor nothing reaches.
+    const raw = { salaryMin: '3200000000' }
+    expect(applyFilters(JOBS, parseFilters({ ...raw, currency: 'USD' }))).toEqual([])
+    expect(applyFilters(JOBS, parseFilters({ ...raw, currency: 'IDR' })).length).toBe(3)
+  })
+
+  it('agrees with itself when one floor is expressed two ways', () => {
+    const usd = applyFilters(JOBS, parseFilters({ salaryMin: '202600', currency: 'USD' }))
+    const idr = applyFilters(JOBS, parseFilters({ salaryMin: '3201080000', currency: 'IDR' }))
+    expect(idr.map((j) => j.id)).toEqual(usd.map((j) => j.id))
+  })
+})
+
 describe('jobsHref', () => {
   it('is a bare path when there is nothing to carry', () => {
     expect(jobsHref(EMPTY_FILTERS)).toBe('/jobs')

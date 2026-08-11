@@ -3,10 +3,9 @@ import { DetailPanel } from '@/components/jobs/detail-panel'
 import { FilterBar } from '@/components/jobs/filter-bar'
 import { FilterSidebar } from '@/components/jobs/filter-sidebar'
 import { JobList } from '@/components/jobs/job-list'
-import { SampleBadge } from '@/components/jobs/primitives'
 import { SearchHeader } from '@/components/jobs/search-header'
 import { JOBS, jobById } from '@/lib/jobs/data'
-import { applyFilters, parseFilters, type RawParams } from '@/lib/jobs/filters'
+import { activeCount, applyFilters, parseFilters, type RawParams } from '@/lib/jobs/filters'
 import { PAGE_SHELL } from '@/lib/jobs/layout'
 import { viewer } from '@/lib/dashboard/viewer'
 
@@ -31,21 +30,25 @@ export default async function JobsPage({
   const selectedId = Array.isArray(raw.job) ? raw.job[0] : raw.job
   const selected = selectedId ? jobById(selectedId) : undefined
 
+  // The bar holds only chips, so it is absent whenever nothing is filtering —
+  // and the sidebar parks 64px higher when it is. One decision, read by both,
+  // rather than each component deciding for itself and drifting.
+  const hasBar = activeCount(filters) > 0
+
   return (
     <div className="min-h-screen bg-canvas">
       <DashboardNav current="/jobs" name={display} email={email} />
 
       <main className={PAGE_SHELL}>
-        <div className="flex animate-rise flex-col items-start gap-3">
-          <h1 className="text-3xl font-bold tracking-tight text-text lg:text-4xl">Jobs</h1>
-          <SampleBadge />
-        </div>
+        <h1 className="animate-rise text-3xl font-bold tracking-tight text-text lg:text-4xl">
+          Jobs
+        </h1>
 
         <SearchHeader filters={filters} />
         <FilterBar filters={filters} />
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
-          <FilterSidebar filters={filters} />
+          <FilterSidebar filters={filters} hasBar={hasBar} />
           <div className="lg:col-span-3">
             <JobList jobs={results} filters={filters} selectedId={selected?.id} />
           </div>

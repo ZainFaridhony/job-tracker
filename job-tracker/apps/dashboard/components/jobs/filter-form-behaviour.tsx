@@ -53,6 +53,11 @@ export function FilterFormBehaviour({ formId }: { formId: string }) {
 
   useEffect(() => {
     function onChange(event: Event) {
+      // Only a reader's own edit submits. The resync below drives controlled
+      // components by dispatching synthetic `change` events, and those are
+      // untrusted — without this guard each one would submit the form it was
+      // dispatched in response to, and the navigation would never settle.
+      if (!event.isTrusted) return
       const target = event.target
       if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) return
       if (target.form?.id !== formId) return
@@ -90,8 +95,7 @@ export function FilterFormBehaviour({ formId }: { formId: string }) {
           const checked = values.includes(element.value)
           if (element.checked !== checked) element.checked = checked
         } else {
-          const value = searchParams.get(name) ?? ''
-          if (element.value !== value) element.value = value
+          assign(element, searchParams.get(name) ?? '')
         }
         continue
       }
@@ -99,8 +103,9 @@ export function FilterFormBehaviour({ formId }: { formId: string }) {
       if (element instanceof HTMLSelectElement) {
         const name = element.name
         if (!name) continue
-        const value = searchParams.get(name) ?? ''
-        if (element.value !== value) element.value = value
+        // SELECT_DEFAULT, not '': a select whose absent state is a real value
+        // rather than "any" would otherwise blank itself. See the note below.
+        assign(element, searchParams.get(name) ?? SELECT_DEFAULT[name] ?? '')
       }
     }
   }, [formId, searchParams])
@@ -121,3 +126,51 @@ export function FilterFormBehaviour({ formId }: { formId: string }) {
  * selection along with the filters it did mean to clear.
  */
 const RADIO_DEFAULT: Record<string, string> = { period: EMPTY_FILTERS.period }
+
+/**
+ * Assign a value, then tell React about it.
+ *
+ * `element.value = x` is invisible to a *controlled* component: its state still
+ * holds the old value and re-asserts it on the next render, so the control
+ * snaps back and the URL and the form disagree again — the exact bug this whole
+ * effect exists to fix, one layer down. React tracks the last value it wrote on
+ * the node itself, so going through the prototype's setter is what defeats that
+ * tracking and makes the dispatched event look like a real edit.
+ *
+ * `AmountField` is the one control on this screen that needs it — it owns the
+ * digit grouping, so its input and its currency select are both controlled.
+ * Everything else here is uncontrolled and would be fine with a plain
+ * assignment; routing all of them through this costs nothing and means the next
+ * controlled field added to the sidebar does not quietly reintroduce the bug.
+ *
+ * Both events are dispatched because React listens for `input` on a text field
+ * and `change` on a select. They are untrusted, which is what the submit
+ * listener above keys off to tell them from a reader's own edit.
+ */
+function assign(element: HTMLInputElement | HTMLSelectElement, value: string): void {
+  if (element.value === value) return
+
+  const prototype =
+    element instanceof HTMLInputElement ? HTMLInputElement.prototype : HTMLSelectElement.prototype
+  const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set
+
+  if (setter) setter.call(element, value)
+  else element.value = value
+
+  element.dispatchEvent(new Event('input', { bubbles: true }))
+  element.dispatchEvent(new Event('change', { bubbles: true }))
+}
+
+/**
+ * The same exception, one control type over.
+ *
+ * A `<select>` whose name is absent from the URL resets to `''`, which selects
+ * its placeholder — right for `fn`, `industry` and `mode`, which genuinely mean
+ * "any". `currency` is not one of those: it is a display unit like `period`,
+ * `FilterState.currency` is never empty, and `toQuery` omits it exactly when it
+ * already equals `BASE_CURRENCY`. Without this entry, "Clear all" — which keeps
+ * the chosen currency, see `clearAllHref` — would blank the currency picker
+ * whenever the kept value happened to be USD, and the next submit would post an
+ * empty currency.
+ */
+const SELECT_DEFAULT: Record<string, string> = { currency: EMPTY_FILTERS.currency }
