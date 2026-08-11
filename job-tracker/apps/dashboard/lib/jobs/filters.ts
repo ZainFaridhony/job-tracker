@@ -251,3 +251,14 @@ export function jobsHref(f: FilterState, jobId?: string): string {
   const withJob = jobId ? (query ? `${query}&job=${jobId}` : `job=${jobId}`) : query
   return withJob ? `/jobs?${withJob}` : '/jobs'
 }
+
+/** "Clear all", except for the one field that is not a filter: `period` is a
+ *  display unit (see `FilterState.period`), so resetting it along with the
+ *  real filters would silently change how every salary reads as a side effect
+ *  of a click that promises only to clear filters. Both the bar's "Clear all"
+ *  and the empty state's "Clear all filters" go through this rather than a
+ *  bare `href="/jobs"`, so the rule lives in one place instead of being
+ *  copy-pasted at each call site. */
+export function clearAllHref(f: FilterState): string {
+  return jobsHref({ ...EMPTY_FILTERS, period: f.period })
+}

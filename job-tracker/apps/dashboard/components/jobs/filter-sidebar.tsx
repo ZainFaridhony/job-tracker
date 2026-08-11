@@ -28,6 +28,15 @@ import { FILTER_FORM_ID } from './search-header'
  * The reference's Languages section is dropped: nothing in the listing shape
  * records a language, and inventing one per company would be fabricated data
  * with no filter behind it. Everything shown here filters something real.
+ *
+ * The body is a <fieldset> with an sr-only <legend> repeating the section
+ * title — `<summary>` is not an accessible group name for what follows it, so
+ * without this a screen reader reaches "Senior, checkbox" with no context of
+ * which facet that belongs to. `packages/ui/src/segmented-field.tsx` groups
+ * its own radios the same way. `min-w-0` counters `<fieldset>`'s default
+ * `min-inline-size: min-content`, which some browsers keep enforcing even
+ * under `display: flex` and could otherwise force the column wider than the
+ * grid track it sits in.
  */
 function Section({
   title,
@@ -40,7 +49,7 @@ function Section({
 }) {
   return (
     <details open={open} className="group border-b border-outline-subtle py-2 last:border-b-0">
-      <summary className="flex cursor-pointer list-none items-center justify-between py-2 text-sm font-semibold text-text">
+      <summary className="flex cursor-pointer list-none items-center justify-between rounded py-2 text-sm font-semibold text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
         {title}
         <ChevronDown
           aria-hidden
@@ -48,7 +57,10 @@ function Section({
           strokeWidth={1.75}
         />
       </summary>
-      <div className="flex flex-col gap-3 pb-3 pt-1">{children}</div>
+      <fieldset className="flex min-w-0 flex-col gap-3 pb-3 pt-1">
+        <legend className="sr-only">{title}</legend>
+        {children}
+      </fieldset>
     </details>
   )
 }

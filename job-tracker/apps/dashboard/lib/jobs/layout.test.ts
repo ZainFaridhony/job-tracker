@@ -30,4 +30,17 @@ describe('sticky offsets', () => {
     )
     expect(nav).toContain(`h-[${NAV_HEIGHT}px]`)
   })
+
+  it('agrees with the bar it is measured against', () => {
+    // BAR_HEIGHT's comment claims 64 = py-3 (12px either side) + a 40px
+    // control row, but nothing enforced the row actually being h-10 — the
+    // coupling STICKY_SIDEBAR's top-[136px] depends on was comment-only.
+    // Nothing else notices if the row's height changes, and the symptom is
+    // the same stripe-of-page bug as the nav check above, just one layer down.
+    const bar = readFileSync(
+      new URL('../../components/jobs/filter-bar.tsx', import.meta.url),
+      'utf8',
+    )
+    expect(bar).toContain('h-10')
+  })
 })

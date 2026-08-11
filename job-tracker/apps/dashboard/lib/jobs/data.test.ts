@@ -6,6 +6,7 @@ import {
   JOBS,
   JOB_FUNCTIONS,
   JOB_SOURCES,
+  POSTED_WINDOWS,
   SENIORITY_LEVELS,
   SKILL_FACETS,
   WORK_MODES,
@@ -71,6 +72,21 @@ describe('the corpus', () => {
     for (const [name, vocabulary, read] of facets) {
       const held = new Set(JOBS.map(read))
       for (const value of vocabulary) expect(held, `${name}: ${value}`).toContain(value)
+    }
+  })
+
+  it('gives every posted window at least one listing within it, so it is not a permanent dead end', () => {
+    // POSTED_WINDOWS is a threshold, not an exact-match vocabulary like the
+    // table above, so it needs its own shape of check: some listing must be
+    // at or under every window's hour count. On this corpus "Past 7 days" and
+    // "Past 30 days" happen to return the same six listings — the oldest
+    // posting is 168h, exactly the 7-day threshold — which is a fact about
+    // this corpus, not a bug to fix by inventing an older listing.
+    for (const w of POSTED_WINDOWS) {
+      expect(
+        JOBS.some((j) => j.postedHoursAgo <= w.hours),
+        `POSTED_WINDOWS: ${w.label}`,
+      ).toBe(true)
     }
   })
 

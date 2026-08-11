@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { SearchX } from 'lucide-react'
 import { JOBS, type Job } from '@/lib/jobs/data'
-import { activeCount, EMPTY_FILTERS, jobsHref, type FilterState } from '@/lib/jobs/filters'
+import { activeCount, clearAllHref, type FilterState } from '@/lib/jobs/filters'
 import { Panel } from '@/components/dashboard/primitives'
 import { JobCard } from './job-card'
 
@@ -16,9 +16,6 @@ function EmptyResults({ filters }: { filters: FilterState }) {
   const filterCount = activeCount(filters)
   const filterWord = filterCount === 1 ? 'filter is' : 'filters are'
   const listingWord = JOBS.length === 1 ? 'listing' : 'listings'
-  // Keeps the reader's chosen salary period — period is a display unit, not a
-  // filter, and a bare href="/jobs" would silently reset it back to yearly.
-  const clearAllHref = jobsHref({ ...EMPTY_FILTERS, period: filters.period })
 
   return (
     <Panel className="flex flex-col items-center gap-4 p-12 text-center">
@@ -32,7 +29,7 @@ function EmptyResults({ filters }: { filters: FilterState }) {
         </p>
       </div>
       <Link
-        href={clearAllHref}
+        href={clearAllHref(filters)}
         className="inline-flex items-center rounded bg-ink px-4 py-2.5 text-sm font-semibold text-text-on-ink transition-colors duration-150 hover:bg-ink-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
       >
         Clear all filters

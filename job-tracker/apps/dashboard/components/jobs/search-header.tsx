@@ -1,4 +1,5 @@
 import { MapPin, Search } from 'lucide-react'
+import Form from 'next/form'
 import Link from 'next/link'
 import { Input, Select } from '@job-tracker/ui'
 import { Panel } from '@/components/dashboard/primitives'
@@ -7,12 +8,28 @@ import { jobsHref, type FilterState } from '@/lib/jobs/filters'
 import { AutoSubmit } from './auto-submit'
 
 /**
- * The search card, and the <form> element the whole screen submits through.
+ * The search card, and the `<Form>` the whole screen submits through.
  *
- * `method="GET"` is the point. Filter state is the URL, so submitting this form
- * IS applying the filters: no client state, no server action, and the screen
- * works with JavaScript off — which is the standard the onboarding wizard
- * already holds. AutoSubmit below is a pure enhancement on top.
+ * `next/form`'s `<Form>` renders a real `<form action="/jobs">` — the no-JS
+ * path is unchanged, a submit still becomes `GET /jobs?...` on the URL, and
+ * that is still the point: filter state is the URL, so submitting this form
+ * IS applying the filters, with no client state and no server action.
+ *
+ * What changes from a plain `<form>` is that, with JavaScript, `<Form>`
+ * intercepts the submit and does a client-side navigation instead of a full
+ * document load. That was not a nicety — a full reload was an actual bug: it
+ * snapped every `<details>` section in the sidebar shut (only "Job
+ * information" starts open, so ticking a second skill meant reopening Skills
+ * every time), lost scroll position and focus, replayed every `animate-rise`,
+ * and tore down and rebuilt D2's live region in a fresh document — where a
+ * screen reader does not announce content that was already there at load, so
+ * the announcer only ever fired on chip removal and never on the sidebar
+ * interactions that actually empty the list.
+ *
+ * `<Form>` has no `method` prop to set — passing one is a type error. That is
+ * not a gap: this component only ever does the one kind of navigation a GET
+ * form does (fold the fields into a URL), which is exactly what this screen
+ * needs.
  *
  * The sidebar is rendered further down the page, inside the results grid, so it
  * cannot be a descendant of this element. Its controls carry
@@ -24,9 +41,8 @@ export const FILTER_FORM_ID = 'job-filters'
 export function SearchHeader({ filters }: { filters: FilterState }) {
   return (
     <Panel className="p-6 sm:p-8" delay={70}>
-      <form
+      <Form
         id={FILTER_FORM_ID}
-        method="GET"
         action="/jobs"
         className="grid grid-cols-1 items-end gap-4 md:grid-cols-5"
       >
@@ -68,7 +84,7 @@ export function SearchHeader({ filters }: { filters: FilterState }) {
         >
           Search
         </button>
-      </form>
+      </Form>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
@@ -80,7 +96,7 @@ export function SearchHeader({ filters }: { filters: FilterState }) {
           <Link
             key={term}
             href={jobsHref({ ...filters, q: term })}
-            className="rounded-full border border-outline-subtle bg-surface px-3 py-1 text-xs font-medium text-text-muted transition-colors duration-150 hover:border-outline hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            className="rounded-full border border-outline bg-surface px-3 py-1 text-xs font-medium text-text-muted transition-colors duration-150 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
             {term}
           </Link>

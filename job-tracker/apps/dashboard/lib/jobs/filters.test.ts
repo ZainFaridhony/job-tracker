@@ -4,6 +4,7 @@ import {
   activeChips,
   activeCount,
   applyFilters,
+  clearAllHref,
   EMPTY_FILTERS,
   jobsHref,
   parseFilters,
@@ -193,5 +194,16 @@ describe('jobsHref', () => {
     expect(jobsHref(f, 'acme-senior-product-designer')).toBe(
       '/jobs?mode=remote&job=acme-senior-product-designer',
     )
+  })
+})
+
+describe('clearAllHref', () => {
+  it('clears every filter but keeps the chosen salary period', () => {
+    const f = parseFilters({ mode: 'remote', level: 'lead', q: 'react', period: 'monthly' })
+    expect(clearAllHref(f)).toBe('/jobs?period=monthly')
+  })
+
+  it('is a bare /jobs when the period is already the default', () => {
+    expect(clearAllHref(parseFilters({ mode: 'remote', level: 'lead' }))).toBe('/jobs')
   })
 })
