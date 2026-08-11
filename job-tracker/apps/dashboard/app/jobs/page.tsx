@@ -1,21 +1,33 @@
-import { Briefcase } from 'lucide-react'
 import { DashboardNav } from '@/components/dashboard/nav'
-import { SectionPlaceholder } from '@/components/dashboard/section-placeholder'
+import { JobList } from '@/components/jobs/job-list'
+import { SampleBadge } from '@/components/jobs/primitives'
+import { JOBS } from '@/lib/jobs/data'
+import { applyFilters, parseFilters, type RawParams } from '@/lib/jobs/filters'
+import { PAGE_SHELL } from '@/lib/jobs/layout'
 import { viewer } from '@/lib/dashboard/viewer'
 
 export const metadata = { title: 'Jobs · Job Tracker AI' }
 
-export default async function JobsPage() {
-  const { display, email } = await viewer()
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawParams>
+}) {
+  const [{ display, email }, raw] = await Promise.all([viewer(), searchParams])
+  const filters = parseFilters(raw)
+  const results = applyFilters(JOBS, filters)
+
   return (
     <div className="min-h-screen bg-canvas">
       <DashboardNav current="/jobs" name={display} email={email} />
-      <main className="mx-auto max-w-[1600px] px-4 py-8 md:px-12">
-        <SectionPlaceholder
-          icon={<Briefcase aria-hidden className="size-6" strokeWidth={1.5} />}
-          title="Jobs"
-          description="Job discovery is not built. PRD NG2 currently rules it out, so this tab exists to keep the navigation honest rather than to hint at a feature that is on its way."
-        />
+
+      <main className={PAGE_SHELL}>
+        <div className="flex animate-rise flex-col gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-text lg:text-4xl">Jobs</h1>
+          <SampleBadge />
+        </div>
+
+        <JobList jobs={results} filters={filters} />
       </main>
     </div>
   )
