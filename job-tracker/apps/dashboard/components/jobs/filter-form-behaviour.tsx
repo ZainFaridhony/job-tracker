@@ -99,7 +99,9 @@ export function FilterFormBehaviour({ formId }: { formId: string }) {
       if (element instanceof HTMLSelectElement) {
         const name = element.name
         if (!name) continue
-        const value = searchParams.get(name) ?? ''
+        // SELECT_DEFAULT, not '': a select whose absent state is a real value
+        // rather than "any" would otherwise blank itself. See the note below.
+        const value = searchParams.get(name) ?? SELECT_DEFAULT[name] ?? ''
         if (element.value !== value) element.value = value
       }
     }
@@ -121,3 +123,17 @@ export function FilterFormBehaviour({ formId }: { formId: string }) {
  * selection along with the filters it did mean to clear.
  */
 const RADIO_DEFAULT: Record<string, string> = { period: EMPTY_FILTERS.period }
+
+/**
+ * The same exception, one control type over.
+ *
+ * A `<select>` whose name is absent from the URL resets to `''`, which selects
+ * its placeholder — right for `fn`, `industry` and `mode`, which genuinely mean
+ * "any". `currency` is not one of those: it is a display unit like `period`,
+ * `FilterState.currency` is never empty, and `toQuery` omits it exactly when it
+ * already equals `BASE_CURRENCY`. Without this entry, "Clear all" — which keeps
+ * the chosen currency, see `clearAllHref` — would blank the currency picker
+ * whenever the kept value happened to be USD, and the next submit would post an
+ * empty currency.
+ */
+const SELECT_DEFAULT: Record<string, string> = { currency: EMPTY_FILTERS.currency }

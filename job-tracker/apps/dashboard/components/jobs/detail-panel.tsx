@@ -134,7 +134,7 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
                   Market estimate
                 </span>
                 <span className="text-base font-bold text-text">
-                  {formatRange(job.marketSalary, filters.period)}
+                  {formatRange(job.marketSalary, filters.period, filters.currency)}
                 </span>
               </div>
               <span aria-hidden className="h-10 w-px bg-outline-subtle" />
@@ -143,7 +143,7 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
                   This listing
                 </span>
                 <span className="text-base font-bold text-text">
-                  {formatRange(job.salary, filters.period)}
+                  {formatRange(job.salary, filters.period, filters.currency)}
                 </span>
               </div>
             </div>

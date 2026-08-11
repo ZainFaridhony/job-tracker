@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { Checkbox, Input, Select } from '@job-tracker/ui'
+import { Checkbox, Input, SegmentedField, Select } from '@job-tracker/ui'
 import { Panel } from '@/components/dashboard/primitives'
 import {
   COMPANY_SIZES,
@@ -16,7 +16,9 @@ import {
   TYPE_LABEL,
 } from '@/lib/jobs/data'
 import type { FilterState } from '@/lib/jobs/filters'
-import { STICKY_SIDEBAR } from '@/lib/jobs/layout'
+import { stickySidebar } from '@/lib/jobs/layout'
+import { SALARY_CURRENCIES } from '@/lib/onboarding/steps'
+import { inCurrency, SALARY_PERIODS } from '@/lib/jobs/salary'
 import { FILTER_FORM_ID } from './search-header'
 
 /**
@@ -92,9 +94,18 @@ function CheckboxFacet<T extends string>({
   )
 }
 
-export function FilterSidebar({ filters }: { filters: FilterState }) {
+export function FilterSidebar({
+  filters,
+  hasBar,
+}: {
+  filters: FilterState
+  /** Whether the sticky filter bar is on screen. It only renders when a filter
+   *  is active, and the sidebar parks 64px lower when it is — passed down
+   *  rather than recomputed here so both components read one decision. */
+  hasBar: boolean
+}) {
   return (
-    <Panel className={`flex flex-col overflow-y-auto p-5 ${STICKY_SIDEBAR}`} delay={140}>
+    <Panel className={`flex flex-col overflow-y-auto p-5 ${stickySidebar(hasBar)}`} delay={140}>
       <h2 className="border-b border-outline-subtle pb-3 text-sm font-bold uppercase tracking-wider text-text">
         Filters
       </h2>
@@ -136,17 +147,54 @@ export function FilterSidebar({ filters }: { filters: FilterState }) {
         />
       </Section>
 
-      <Section title="Salary">
+      <Section title="Salary" open>
+        {/* Two display units and one filter, in that order, because the units
+            are what the figure below is read in.
+
+            Neither unit is a filter: both change how every salary on the screen
+            reads and neither can admit or reject a listing. That is why they
+            produce no chip and are not counted — see FilterState — and why
+            "Clear all" keeps them. They live here rather than in the sticky bar
+            because a unit belongs beside the figure it describes, and because
+            the bar is now conditional. */}
+        <SegmentedField
+          name="period"
+          legend="Show salaries as"
+          form={FILTER_FORM_ID}
+          value={filters.period}
+          options={SALARY_PERIODS}
+        />
+
+        <Select
+          label="Currency"
+          name="currency"
+          form={FILTER_FORM_ID}
+          value={filters.currency}
+          options={SALARY_CURRENCIES.map((c) => ({
+            value: c.value,
+            label: `${c.label} (${c.symbol})`,
+          }))}
+        />
+
         {/* One floor, not a min/max pair. A maximum on a salary search filters
             out the listings you would most want, which is why the chip reads
-            "$160k+" rather than a band. */}
+            "$160k+" rather than a band.
+
+            Typed in the currency picked above, and yearly regardless of the
+            period picked above that — the period is how the results are read,
+            not a second axis to type a threshold on. The label carries both
+            facts because switching currency reinterprets whatever is already in
+            the box, which is only defensible if the box says what it is
+            counting. */}
         <Input
-          label="Minimum, per year"
+          label={`Minimum, per year (${filters.currency})`}
           name="salaryMin"
           form={FILTER_FORM_ID}
           inputMode="numeric"
           defaultValue={filters.salaryMin === null ? '' : String(filters.salaryMin)}
-          placeholder="160000"
+          // Converted rather than hardcoded, so the hint is plausible in every
+          // currency instead of suggesting 160000 to someone reading rupiah.
+          placeholder={String(Math.round(inCurrency(160_000, filters.currency)))}
         />
       </Section>
 

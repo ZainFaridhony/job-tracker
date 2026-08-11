@@ -20,7 +20,15 @@ import {
   type SeniorityLevel,
   type WorkMode,
 } from './data'
-import { formatAmount, isSalaryPeriod, type SalaryPeriod } from './salary'
+import {
+  BASE_CURRENCY,
+  formatFigure,
+  isSalaryCurrency,
+  isSalaryPeriod,
+  toBaseCurrency,
+  type SalaryCurrency,
+  type SalaryPeriod,
+} from './salary'
 
 /**
  * Filter state, which is the URL.
@@ -51,11 +59,18 @@ export type FilterState = {
   sizes: CompanySize[]
   sources: JobSource[]
   skills: string[]
+  /** Typed in `currency`, not in the corpus's base — the input sits under a
+   *  currency picker and its label says which. `applyFilters` moves this one
+   *  number into the base rather than moving every listing out of it. */
   salaryMin: number | null
   postedWithinHours: number | null
   /** A display unit, not a filter: it changes how salary reads, never which
    *  listings survive. Excluded from the chips and from the count. */
   period: SalaryPeriod
+  /** The other display unit, and the same rule applies — no chip, not counted.
+   *  It does reach `applyFilters`, but only to interpret `salaryMin`, never to
+   *  admit or reject a listing on its own. */
+  currency: SalaryCurrency
 }
 
 export type Chip = { key: string; label: string }
@@ -74,6 +89,7 @@ export const EMPTY_FILTERS: FilterState = {
   salaryMin: null,
   postedWithinHours: null,
   period: 'yearly',
+  currency: BASE_CURRENCY,
 }
 
 const MAX_TEXT = 100
@@ -100,6 +116,7 @@ export function parseFilters(raw: RawParams): FilterState {
   const digits = one(raw, 'salaryMin').replace(/\D/g, '')
   const posted = Number(one(raw, 'posted'))
   const period = one(raw, 'period')
+  const currency = one(raw, 'currency')
 
   return {
     q: one(raw, 'q').slice(0, MAX_TEXT),
@@ -115,6 +132,7 @@ export function parseFilters(raw: RawParams): FilterState {
     salaryMin: digits === '' ? null : Number(digits),
     postedWithinHours: POSTED_WINDOWS.some((w) => w.hours === posted) ? posted : null,
     period: isSalaryPeriod(period) ? period : 'yearly',
+    currency: isSalaryCurrency(currency) ? currency : BASE_CURRENCY,
   }
 }
 
@@ -144,7 +162,15 @@ export function applyFilters(jobs: readonly Job[], f: FilterState): Job[] {
     if (f.skills.length && !f.skills.every((s) => job.skills.includes(s))) return false
     // Against the TOP of the band. "pays at least 200k" should keep a listing
     // advertised at 165k-205k, because it reaches the figure.
-    if (f.salaryMin !== null && job.salary.max < f.salaryMin) return false
+    //
+    // The floor is typed in whichever currency is on screen and every listing
+    // is stored in the base, so one side has to move first. Moving the single
+    // threshold rather than every listing keeps one conversion per request
+    // instead of one per row, and keeps the corpus the only source of truth
+    // about what a job pays.
+    if (f.salaryMin !== null && job.salary.max < toBaseCurrency(f.salaryMin, f.currency)) {
+      return false
+    }
     if (f.postedWithinHours !== null && job.postedHoursAgo > f.postedWithinHours) return false
     return true
   })
@@ -163,7 +189,13 @@ export function activeChips(f: FilterState): Chip[] {
   for (const s of f.sources) chips.push({ key: `source:${s}`, label: SOURCE_LABEL[s] })
   for (const s of f.skills) chips.push({ key: `skill:${s}`, label: s })
   if (f.salaryMin !== null) {
-    chips.push({ key: `salaryMin:${f.salaryMin}`, label: `${formatAmount(f.salaryMin, 'yearly')}+` })
+    // formatFigure, not formatAmount: the floor is already denominated in
+    // `f.currency`, so converting it again would show a figure the reader never
+    // typed.
+    chips.push({
+      key: `salaryMin:${f.salaryMin}`,
+      label: `${formatFigure(f.salaryMin, f.currency)}+`,
+    })
   }
   if (f.postedWithinHours !== null) {
     const window = POSTED_WINDOWS.find((w) => w.hours === f.postedWithinHours)
@@ -227,8 +259,9 @@ export function toQuery(f: FilterState): string {
   for (const s of f.skills) p.append('skill', s)
   if (f.salaryMin !== null) p.set('salaryMin', String(f.salaryMin))
   if (f.postedWithinHours !== null) p.set('posted', String(f.postedWithinHours))
-  // The default is omitted so an untouched screen has a bare /jobs URL.
+  // The defaults are omitted so an untouched screen has a bare /jobs URL.
   if (f.period !== 'yearly') p.set('period', f.period)
+  if (f.currency !== BASE_CURRENCY) p.set('currency', f.currency)
   return p.toString()
 }
 
@@ -253,13 +286,13 @@ export function jobsHref(f: FilterState, jobId?: string): string {
   return withJob ? `/jobs?${withJob}` : '/jobs'
 }
 
-/** "Clear all", except for the one field that is not a filter: `period` is a
- *  display unit (see `FilterState.period`), so resetting it along with the
- *  real filters would silently change how every salary reads as a side effect
- *  of a click that promises only to clear filters. Both the bar's "Clear all"
- *  and the empty state's "Clear all filters" go through this rather than a
+/** "Clear all", except for the two fields that are not filters: `period` and
+ *  `currency` are display units (see `FilterState`), so resetting them along
+ *  with the real filters would silently change how every salary reads as a side
+ *  effect of a click that promises only to clear filters. Both the bar's "Clear
+ *  all" and the empty state's "Clear all filters" go through this rather than a
  *  bare `href="/jobs"`, so the rule lives in one place instead of being
  *  copy-pasted at each call site. */
 export function clearAllHref(f: FilterState): string {
-  return jobsHref({ ...EMPTY_FILTERS, period: f.period })
+  return jobsHref({ ...EMPTY_FILTERS, period: f.period, currency: f.currency })
 }

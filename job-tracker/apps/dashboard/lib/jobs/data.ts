@@ -4,9 +4,12 @@
  *
  * Every listing here is invented. PRD NG2 rules out job discovery, so nothing
  * fetches these and nothing ever will until that changes — the screen exists to
- * settle the UI. `SampleBadge` says so on the page, because a fabricated job ad
- * is a thing a reader could act on in a way a fabricated application count is
- * not.
+ * settle the UI. What carries that on screen is the detail panel's disabled
+ * Apply, Save, Share and Optimise controls and the caption under them; a
+ * page-level "sample data" badge was tried and removed. If this corpus is ever
+ * shown somewhere those controls are not, it needs its own disclosure — a
+ * fabricated job advert is something a reader can act on in a way a fabricated
+ * application count is not.
  *
  * Lives in lib/ rather than beside the components because this workspace's
  * vitest is node-only and scoped to lib/**: anything here can be tested and

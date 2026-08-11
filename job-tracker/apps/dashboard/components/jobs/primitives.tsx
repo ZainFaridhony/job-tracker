@@ -185,20 +185,3 @@ export function MatchRing({ score }: { score: number }) {
     </span>
   )
 }
-
-/**
- * What this screen is.
- *
- * The page it replaces said plainly that job discovery is not built (PRD NG2),
- * and these listings are invented. A fabricated job advert is something a
- * reader could act on in a way a fabricated application count is not, so the
- * screen says so once, at the top, rather than hedging in six places.
- */
-export function SampleBadge() {
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-outline bg-surface px-3 py-1 text-xs font-semibold text-text-muted">
-      <span aria-hidden className="size-1.5 rounded-full bg-ink" />
-      Sample data — these listings are placeholders
-    </span>
-  )
-}

@@ -98,7 +98,7 @@ export function JobCard({
         </h2>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Pill>{formatRange(job.salary, filters.period)}</Pill>
+          <Pill>{formatRange(job.salary, filters.period, filters.currency)}</Pill>
           <Pill>
             <Users aria-hidden className="size-3.5" strokeWidth={1.75} />
             {job.applicants} applicants

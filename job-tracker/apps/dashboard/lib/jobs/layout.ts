@@ -27,7 +27,32 @@ export const BAR_HEIGHT = 64
  *  which the dashboard's shell does not have. */
 export const PAGE_SHELL = 'mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-8 md:px-12'
 
+/** Breathing room under the sidebar so its last section is not flush with the
+ *  viewport edge. Folded into the max-height literals below. */
+export const SIDEBAR_GUTTER = 24
+
 export const STICKY_BAR =
   'sticky top-[72px] z-30 -mx-4 border-b border-outline-subtle bg-canvas/85 px-4 py-3 backdrop-blur-md md:-mx-12 md:px-12'
 
+/**
+ * Where the sidebar parks, which depends on whether the bar is on screen.
+ *
+ * The bar holds only the active-filter chips now, so it renders nothing at all
+ * on an untouched screen — the salary period and currency toggles moved into
+ * the sidebar's own Salary section, where they sit beside the figure they
+ * describe. That makes the sidebar's offset conditional rather than constant:
+ * 72 + 64 when the bar is there, 72 alone when it is not. Leaving it at 136
+ * unconditionally left a 64px band of scrolling page above the sidebar on every
+ * unfiltered visit, which is the majority of them.
+ *
+ * Two literals rather than one built from the numbers, for the reason at the
+ * top of this file: Tailwind only emits classes it can see written out.
+ */
 export const STICKY_SIDEBAR = 'lg:sticky lg:top-[136px] lg:z-20 lg:max-h-[calc(100dvh-160px)]'
+
+export const STICKY_SIDEBAR_NO_BAR =
+  'lg:sticky lg:top-[72px] lg:z-20 lg:max-h-[calc(100dvh-96px)]'
+
+export function stickySidebar(hasBar: boolean): string {
+  return hasBar ? STICKY_SIDEBAR : STICKY_SIDEBAR_NO_BAR
+}
