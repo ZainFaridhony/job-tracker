@@ -77,10 +77,25 @@ export function DashboardNav({
   current,
   name,
   email,
+  jobsHref,
 }: {
   current: TabHref
   name: string
   email: string
+  /**
+   * Where the Jobs tab points, when the reader has asked for their filters to be
+   * seeded from their profile — see `seedJobsHref`.
+   *
+   * Optional, and it defaults to the plain `/jobs` in TABS. Two reasons rather
+   * than one: a route that has no preference row to read should not have to
+   * invent one, and `/jobs` itself passes nothing because seeding the tab for the
+   * page you are already on would throw away the filters you just set by hand.
+   *
+   * `current` is still matched against the tab's own `/jobs`, not against this —
+   * a seeded href carries a query string, so comparing against it would leave the
+   * Jobs tab unhighlighted on the Jobs page.
+   */
+  jobsHref?: string
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-outline-subtle bg-surface/80 backdrop-blur-md">
@@ -97,7 +112,15 @@ export function DashboardNav({
             squeeze the mark and the identity cluster off the ends. */}
         <nav aria-label="Sections" className="hidden items-center gap-1 md:flex">
           {TABS.map((tab) => (
-            <Tab key={tab.href} href={tab.href} label={tab.label} active={tab.href === current} />
+            <Tab
+              key={tab.href}
+              // The seeded href only ever replaces where the link GOES. `active`
+              // and the React key still come from the tab's own path, so a query
+              // string on the destination cannot break either.
+              href={tab.href === '/jobs' && jobsHref ? jobsHref : tab.href}
+              label={tab.label}
+              active={tab.href === current}
+            />
           ))}
         </nav>
 

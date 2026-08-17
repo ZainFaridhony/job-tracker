@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { cn } from '@job-tracker/ui'
+import type { Trend } from '@/lib/dashboard/dummy'
 
 /**
  * The dashboard's shared surfaces.
@@ -17,8 +19,18 @@ import { cn } from '@job-tracker/ui'
  *   gray-50 / gray-100    -> bg-surface-subtle
  *   #000000 primary       -> bg-ink / text-text
  *   #666666 secondary     -> text-text-muted
- *   red-50 / red-600      -> bg-error-surface / text-on-error-surface
- *   green-50 / green-600  -> dropped, see Delta below
+ *   red-50 / red-600      -> bg-error-surface / text-text-on-error-surface
+ *   green-50 / green-600  -> bg-success-surface / text-text-on-success-surface
+ *   amber-50 / amber-600  -> bg-warning-surface / text-text-on-warning-surface
+ *
+ * Note the doubled prefix: the token is called `text-on-error-surface`, so the
+ * utility that reads it is `text-` + that name. `text-on-error-surface` is a
+ * class Tailwind emits NO CSS for — it silently resolves nothing rather than
+ * erroring, and `pipeline.tsx` inherited near-black from it for months.
+ *
+ * The three tinted pairs are an ordinal scale (see tokens.ts) and belong only to
+ * quantities with a real direction — `Delta` and `healthBand`. They are not a
+ * general good/caution/bad vocabulary.
  *
  * Radii differ between the two systems and are easy to mistranslate: the
  * reference's `card` (24px) is this theme's `rounded-xl`, and the reference's
@@ -79,20 +91,36 @@ export function Eyebrow({ children }: { children: ReactNode }) {
 /**
  * A period-on-period change.
  *
- * Monochrome, where the reference paints it green. Two reasons, and the second
- * is the reference's own: this palette has no success token and inventing one
- * would ship a colour no contrast test covers, and DESIGN.md itself says to
- * hold the monochrome line and avoid red/green "unless absolutely necessary for
- * error handling". The arrow already carries the direction, so the colour was
- * only ever redundant encoding — which is the accessible choice anyway.
+ * The one place this design leaves the monochrome line, and it does so on a
+ * token whose contrast is asserted: `success` and `error` sit within 0.1 of each
+ * other on every background, so a rise and a fall carry equal weight rather than
+ * a drop shouting. Colour is never the only encoding — the arrow says the same
+ * thing, which is what keeps this readable to a colour-blind reader and in
+ * greyscale print.
+ *
+ * Takes the whole `Trend` rather than a number so the badge and the tooltip
+ * beside it cannot end up rendering two different figures, which is the exact
+ * failure the reference sheet shipped: 22% printed over a chart ending at 15
+ * beside a title claiming a baseline of 14.
  */
-export function Delta({ value }: { value: number }) {
-  const up = value >= 0
+export function Delta({ trend }: { trend: Trend }) {
+  const { direction, percent } = trend
+
+  // No baseline is not the same as no change, so it does not get an arrow, a
+  // sign or a colour — all three would assert a comparison that never happened.
+  if (percent === null) {
+    return <span className="text-xs font-semibold text-text-muted">First week</span>
+  }
+
+  const Icon = direction === 'up' ? TrendingUp : direction === 'down' ? TrendingDown : Minus
+  const tone =
+    direction === 'up' ? 'text-success' : direction === 'down' ? 'text-error' : 'text-text-muted'
+
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-text">
-      <span aria-hidden>{up ? '↑' : '↓'}</span>
-      {up ? '+' : ''}
-      {value}%
+    <span className={cn('inline-flex items-center gap-1 text-xs font-semibold', tone)}>
+      <Icon aria-hidden className="size-3.5 shrink-0" strokeWidth={2.25} />
+      {direction === 'up' ? '+' : ''}
+      {percent}%
     </span>
   )
 }

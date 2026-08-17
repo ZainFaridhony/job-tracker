@@ -21,6 +21,12 @@ import {
   type WorkMode,
 } from './data'
 import {
+  COMPETITION_BANDS,
+  COMPETITION_LABEL,
+  competitionFor,
+  type CompetitionBand,
+} from './derive'
+import {
   BASE_CURRENCY,
   formatFigure,
   isSalaryCurrency,
@@ -29,6 +35,9 @@ import {
   type SalaryCurrency,
   type SalaryPeriod,
 } from './salary'
+// Value import, where tabs.ts imports only TYPES back from here — so this is a
+// one-way dependency at runtime, not a cycle.
+import { DEFAULT_TAB } from './tabs'
 
 /**
  * Filter state, which is the URL.
@@ -59,6 +68,9 @@ export type FilterState = {
   sizes: CompanySize[]
   sources: JobSource[]
   skills: string[]
+  /** Derived from `applicants` rather than stored, so this is the one facet whose
+   *  vocabulary comes from `derive.ts` instead of from a column in the corpus. */
+  competition: CompetitionBand[]
   /** Typed in `currency`, not in the corpus's base — the input sits under a
    *  currency picker and its label says which. `applyFilters` moves this one
    *  number into the base rather than moving every listing out of it. */
@@ -86,6 +98,7 @@ export const EMPTY_FILTERS: FilterState = {
   sizes: [],
   sources: [],
   skills: [],
+  competition: [],
   salaryMin: null,
   postedWithinHours: null,
   period: 'yearly',
@@ -129,6 +142,7 @@ export function parseFilters(raw: RawParams): FilterState {
     sizes: many(raw, 'size', COMPANY_SIZES),
     sources: many(raw, 'source', JOB_SOURCES),
     skills: many(raw, 'skill', SKILL_FACETS),
+    competition: many(raw, 'comp', COMPETITION_BANDS),
     salaryMin: digits === '' ? null : Number(digits),
     postedWithinHours: POSTED_WINDOWS.some((w) => w.hours === posted) ? posted : null,
     period: isSalaryPeriod(period) ? period : 'yearly',
@@ -160,6 +174,13 @@ export function applyFilters(jobs: readonly Job[], f: FilterState): Job[] {
     // values of every OTHER facet are alternatives, which is why they use
     // `includes` above and this one uses `every`.
     if (f.skills.length && !f.skills.every((s) => job.skills.includes(s))) return false
+    // `includes`, not `every`: a listing sits in exactly one band, so asking for
+    // two at once can only mean "either" — AND here would always return nothing.
+    // Derived on the way past rather than stored, so the applicant count stays
+    // the single source and no listing can claim a band its count contradicts.
+    if (f.competition.length && !f.competition.includes(competitionFor(job.applicants))) {
+      return false
+    }
     // Against the TOP of the band. "pays at least 200k" should keep a listing
     // advertised at 165k-205k, because it reaches the figure.
     //
@@ -188,6 +209,9 @@ export function activeChips(f: FilterState): Chip[] {
   for (const s of f.sizes) chips.push({ key: `size:${s}`, label: SIZE_LABEL[s] })
   for (const s of f.sources) chips.push({ key: `source:${s}`, label: SOURCE_LABEL[s] })
   for (const s of f.skills) chips.push({ key: `skill:${s}`, label: s })
+  // The long label, not the sidebar's short one: a chip in the sticky bar has no
+  // section title above it, so "High" alone would not say what is high.
+  for (const c of f.competition) chips.push({ key: `comp:${c}`, label: COMPETITION_LABEL[c] })
   if (f.salaryMin !== null) {
     // formatFigure, not formatAmount: the floor is already denominated in
     // `f.currency`, so converting it again would show a figure the reader never
@@ -236,6 +260,8 @@ export function withoutChip(f: FilterState, key: string): FilterState {
       return { ...f, sources: f.sources.filter((v) => v !== value) }
     case 'skill':
       return { ...f, skills: f.skills.filter((v) => v !== value) }
+    case 'comp':
+      return { ...f, competition: f.competition.filter((v) => v !== value) }
     case 'salaryMin':
       return { ...f, salaryMin: null }
     case 'posted':
@@ -257,6 +283,7 @@ export function toQuery(f: FilterState): string {
   for (const s of f.sizes) p.append('size', s)
   for (const s of f.sources) p.append('source', s)
   for (const s of f.skills) p.append('skill', s)
+  for (const c of f.competition) p.append('comp', c)
   if (f.salaryMin !== null) p.set('salaryMin', String(f.salaryMin))
   if (f.postedWithinHours !== null) p.set('posted', String(f.postedWithinHours))
   // The defaults are omitted so an untouched screen has a bare /jobs URL.
@@ -277,13 +304,29 @@ export function rawFromQuery(query: string): RawParams {
   return raw
 }
 
-/** Every link on the screen goes through here, so opening or closing a listing
- *  never silently drops the filters that found it. */
-export function jobsHref(f: FilterState, jobId?: string): string {
-  const query = toQuery(f)
-  const encodedJob = jobId ? `job=${encodeURIComponent(jobId)}` : ''
-  const withJob = jobId ? (query ? `${query}&${encodedJob}` : encodedJob) : query
-  return withJob ? `/jobs?${withJob}` : '/jobs'
+/**
+ * Every link on the screen goes through here, so opening or closing a listing
+ * never silently drops the filters that found it.
+ *
+ * `jobId` and `tab` are the two values NOT held in `FilterState`, because
+ * neither narrows the result set — they are which listing is open and which of
+ * its panes is showing. Both are appended by hand rather than through
+ * URLSearchParams, so both call `encodeURIComponent` explicitly at this one
+ * site; every other field is encoded implicitly by `toQuery`.
+ *
+ * Two rules keep the URL free of dead state: the default tab is never written
+ * (`?tab=summary` is noise on every link), and no tab is written at all without
+ * a listing to apply it to — a bare `?tab=` would otherwise survive every
+ * subsequent filter click with no panel to affect.
+ */
+export function jobsHref(f: FilterState, jobId?: string, tab?: string): string {
+  const parts = [toQuery(f)]
+  if (jobId) {
+    parts.push(`job=${encodeURIComponent(jobId)}`)
+    if (tab && tab !== DEFAULT_TAB) parts.push(`tab=${encodeURIComponent(tab)}`)
+  }
+  const query = parts.filter(Boolean).join('&')
+  return query ? `/jobs?${query}` : '/jobs'
 }
 
 /** "Clear all", except for the two fields that are not filters: `period` and

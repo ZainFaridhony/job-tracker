@@ -6,6 +6,7 @@ import { Panel } from '@/components/dashboard/primitives'
 import { MODE_LABEL, TRENDING, WORK_MODES } from '@/lib/jobs/data'
 import { jobsHref, type FilterState } from '@/lib/jobs/filters'
 import { FilterFormBehaviour } from './filter-form-behaviour'
+import { SearchButton } from './search-button'
 
 /**
  * The search card, and the `<Form>` the whole screen submits through.
@@ -94,13 +95,12 @@ export function SearchHeader({ filters }: { filters: FilterState }) {
             With JavaScript, FilterFormBehaviour has usually already run — but
             the button stays visible because a search field without a search
             button reads as broken, and a keyboard Enter needs a default
-            submit anyway. */}
-        <button
-          type="submit"
-          className="h-12 rounded bg-ink px-6 text-sm font-semibold text-text-on-ink transition-colors duration-150 hover:bg-ink-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-        >
-          Search
-        </button>
+            submit anyway.
+
+            A client component only so it can show a pending state: `<Form>`'s
+            action is a URL string, not a React form action, so `useFormStatus`
+            never reports anything here. See search-button.tsx. */}
+        <SearchButton formId={FILTER_FORM_ID} />
       </Form>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">

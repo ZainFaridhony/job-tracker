@@ -1,19 +1,40 @@
 import { HeartPulse, Wand2 } from 'lucide-react'
 import { cn } from '@job-tracker/ui'
-import { RESUME_HEALTH } from '@/lib/dashboard/dummy'
+import { healthBand, type HealthTone, RESUME_HEALTH } from '@/lib/dashboard/dummy'
+import { InfoTooltip } from './info-tooltip'
 import { Eyebrow, Panel, PanelTitle, Tile } from './primitives'
 
 /**
- * Resume health, as a score and four measured rows.
+ * Resume health, as a banded score and four measured rows.
  *
- * The verdict chip is a neutral chip, not the reference's green one — same
- * reasoning as `Delta`: no success token exists, and the number beside it
- * already says 91 out of 100. "Missing skills" keeps its error colour, because
- * that row is the one thing here the user is meant to act on and the palette
- * has a tested pair for exactly that.
+ * The verdict chip carries its band's colour: Excellent green, Warning amber,
+ * Critical red. What makes that safe is that the WORD changes with the colour —
+ * colour is never the only encoding here, the same rule that keeps an arrow on
+ * `Delta`. A chip that only went green-to-red would be unreadable to a
+ * colour-blind reader and meaningless in greyscale.
+ *
+ * Both halves come from `healthBand(score)` in one call, so the label and the
+ * fill cannot disagree; the score itself stays ink, because it is a quantity
+ * rather than a judgement and the chip beside it already carries the verdict.
+ *
+ * "Missing skills" keeps its error colour independently of the band: that row is
+ * the one thing here the user is meant to act on.
  */
+
+/**
+ * Tone to classes. A literal map rather than `bg-${tone}-surface`, because
+ * Tailwind only emits CSS for class names it can see written out in full — an
+ * interpolated one compiles to nothing at all, silently. Same trap as the
+ * sticky offsets in lib/jobs/layout.ts.
+ */
+const BAND_CHIP: Record<HealthTone, string> = {
+  success: 'bg-success-surface text-text-on-success-surface',
+  warning: 'bg-warning-surface text-text-on-warning-surface',
+  error: 'bg-error-surface text-text-on-error-surface',
+}
 export function ResumeHealth({ delay }: { delay?: number }) {
-  const { score, outOf, verdict, rows, tips } = RESUME_HEALTH
+  const { score, outOf, rows, tips } = RESUME_HEALTH
+  const band = healthBand(score)
 
   return (
     <Panel className="flex h-full flex-col gap-6 p-6 sm:p-8" delay={delay}>
@@ -28,8 +49,13 @@ export function ResumeHealth({ delay }: { delay?: number }) {
             {score} / {outOf}
           </span>
         </span>
-        <span className="rounded-full border border-outline px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-text">
-          {verdict}
+        <span
+          className={cn(
+            'rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider',
+            BAND_CHIP[band.tone],
+          )}
+        >
+          {band.label}
         </span>
       </Tile>
 
@@ -80,7 +106,16 @@ export function ResumeHealth({ delay }: { delay?: number }) {
             )}
           >
             <span className="text-xs font-medium">{tip.label}</span>
-            <span className="text-xs font-bold">{tip.gain}</span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-xs font-bold">{tip.gain}</span>
+              <InfoTooltip
+                label={`Why ${tip.label.toLowerCase()}?`}
+                // The ⓘ inherits nothing: the emphasised row is an ink fill, so
+                // a muted grey glyph on it would fall under 3:1.
+                iconClassName={tip.emphasis ? 'text-text-on-ink' : 'text-text-muted'}
+                content={<p className="leading-relaxed text-text-muted">{tip.reason}</p>}
+              />
+            </span>
           </div>
         ))}
       </div>

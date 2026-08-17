@@ -26,10 +26,38 @@ export type CompetitionBand = 'low' | 'medium' | 'high'
 /** Lower bound of each band, in applicants. */
 export const COMPETITION_THRESHOLDS = { medium: 25, high: 100 } as const
 
+/**
+ * The filter vocabulary, ascending — the same ordinal order the meter draws in,
+ * so the sidebar reads Low → High rather than alphabetically.
+ *
+ * It lives here beside the type, the thresholds and `competitionFor` rather than
+ * with the facet vocabularies in `data.ts`, because competition is the one facet
+ * that is DERIVED rather than stored: no listing has a `competition` field to
+ * draw a vocabulary from. Keeping all five pieces in one file is what lets
+ * `derive.test.ts` assert the vocabulary against the function that produces it.
+ */
+export const COMPETITION_BANDS = ['low', 'medium', 'high'] as const
+
 export const COMPETITION_LABEL: Record<CompetitionBand, string> = {
   low: 'Low competition',
   medium: 'Medium competition',
   high: 'High competition',
+}
+
+/**
+ * The same three bands, named for a checkbox rather than for the meter.
+ *
+ * `COMPETITION_LABEL` above is written to stand alone beside an applicant count
+ * on a card, where "Low" by itself would not say what is low. Under a sidebar
+ * section already titled "Applicant competition" that same string reads "Low
+ * competition competition", so the filter gets its own labels. The chips go back
+ * to the long form, because a chip in the sticky bar has no section title above
+ * it to borrow context from.
+ */
+export const COMPETITION_FILTER_LABEL: Record<CompetitionBand, string> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
 }
 
 /** How many bars the meter draws. Also the ceiling on `competitionFilled`. */

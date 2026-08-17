@@ -44,6 +44,7 @@ function normalise(raw: string): string {
  */
 export function AmountField({
   label,
+  labelHidden,
   name,
   currencyName,
   currencies,
@@ -54,6 +55,18 @@ export function AmountField({
   form,
 }: {
   label: string
+  /**
+   * Hides the label visually and keeps it for assistive tech.
+   *
+   * For a caller whose surrounding copy already says what the amount is — the
+   * jobs sidebar's Salary section, where the segmented "Show salaries as" control
+   * sits directly above and a hint sits directly below. The label is still
+   * REQUIRED, and still rendered: dropping it leaves an unnamed number input
+   * beside a labelled currency select, which a screen reader announces as
+   * nothing and WCAG 3.3.2 does not allow. Onboarding and settings pass nothing
+   * here, where the label is the question being asked and belongs on screen.
+   */
+  labelHidden?: boolean
   name: string
   currencyName: string
   currencies: readonly Currency[]
@@ -78,7 +91,12 @@ export function AmountField({
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-xs font-medium tracking-wide text-text-muted">
+      <label
+        htmlFor={id}
+        className={
+          labelHidden ? 'sr-only' : 'text-xs font-medium tracking-wide text-text-muted'
+        }
+      >
         {label}
       </label>
 

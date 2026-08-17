@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { Share2, Sparkles, TrendingUp, Users, X } from 'lucide-react'
+import { cn } from '@job-tracker/ui'
 import { Tile } from '@/components/dashboard/primitives'
 import { LEVEL_LABEL, MODE_LABEL, type Job } from '@/lib/jobs/data'
 import { postedAgo, verdictFor } from '@/lib/jobs/derive'
 import { jobsHref, type FilterState } from '@/lib/jobs/filters'
 import { formatRange } from '@/lib/jobs/salary'
+import { JOB_TABS, TAB_LABEL, tabPane, type JobTab } from '@/lib/jobs/tabs'
 import { CompanyMark, CompetitionMeter, MatchRing, Pill, VerifiedTick } from './primitives'
 import { PanelBehaviour } from './panel-behaviour'
 
@@ -23,15 +25,34 @@ import { PanelBehaviour } from './panel-behaviour'
  * The backdrop is a link to the same close href, so clicking away works
  * without a handler.
  *
- * The reference's five content tabs (Summary / Job Description / Required
- * Quals / Preferred / About) are rendered as five stacked sections instead.
- * Tabs would need client state to hide four-fifths of a panel that already
- * scrolls, and hiding the requirements behind a tab is the opposite of what
- * someone reads a job ad for.
+ * THE CONTENT TABS ARE LINKS, not a widget. They were stacked sections at first
+ * on the grounds that tabs need client state — which is true of a tab widget and
+ * not true of these: the tab is a URL parameter, read on the server, so four of
+ * the five panes are not hidden behind a script this panel deliberately does not
+ * need. See lib/jobs/tabs.ts.
+ *
+ * They are also NOT `role="tablist"`. That role promises a widget with arrow-key
+ * traversal and `aria-controls`, and announcing a contract we do not implement is
+ * worse than not claiming one. Links that change the URL are navigation, so this
+ * is a <nav> with `aria-current="page"`, which is what it actually is.
+ *
+ * The tradeoff is real and was argued the other way once: requirements now sit
+ * behind a tab, and someone reading a job ad wants them. What buys it back is
+ * that the tab is addressable — a link can point straight at the requirements —
+ * which a stacked section could not offer.
  */
-export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }) {
+export function DetailPanel({
+  job,
+  filters,
+  tab,
+}: {
+  job: Job
+  filters: FilterState
+  tab: JobTab
+}) {
   const closeHref = jobsHref(filters)
   const panelId = `job-detail-panel-${job.id}`
+  const pane = tabPane(job, tab)
 
   return (
     <>
@@ -179,31 +200,47 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
             <CompetitionMeter applicants={job.applicants} />
           </section>
 
-          <article className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-bold text-text">The role</h3>
-              <p className="text-sm leading-relaxed text-text-muted">{job.summary}</p>
-            </div>
+          {/* flex-nowrap + overflow-x-auto, not wrap: five labels do not fit a
+              phone-width panel, and a bar that wraps to a second line pushes the
+              pane down by a row that appears only at some widths. Same lesson as
+              the sticky filter bar. */}
+          <nav aria-label="Listing details">
+            <ul className="flex flex-nowrap gap-1 overflow-x-auto border-b border-outline-subtle">
+              {JOB_TABS.map((key) => {
+                const current = key === tab
+                return (
+                  <li key={key} className="shrink-0">
+                    <Link
+                      href={jobsHref(filters, job.id, key)}
+                      scroll={false}
+                      aria-current={current ? 'page' : undefined}
+                      className={cn(
+                        '-mb-px inline-block whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-semibold',
+                        'outline-offset-[-2px] focus-visible:outline-2 focus-visible:outline-outline',
+                        current
+                          ? 'border-ink text-text'
+                          : 'border-transparent text-text-muted hover:text-text',
+                      )}
+                    >
+                      {TAB_LABEL[key]}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
 
-            {[
-              { title: 'Responsibilities', items: job.responsibilities },
-              { title: 'Requirements', items: job.requirements },
-              { title: 'Nice to have', items: job.preferred },
-            ].map((block) => (
-              <div key={block.title} className="flex flex-col gap-2">
-                <h3 className="text-sm font-bold text-text">{block.title}</h3>
-                <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm leading-relaxed text-text-muted">
-                  {block.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-bold text-text">About {job.company}</h3>
-              <p className="text-sm leading-relaxed text-text-muted">{job.about}</p>
-            </div>
+          <article className="flex flex-col gap-2">
+            <h3 className="text-sm font-bold text-text">{pane.heading}</h3>
+            {pane.kind === 'prose' ? (
+              <p className="text-sm leading-relaxed text-text-muted">{pane.body}</p>
+            ) : (
+              <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm leading-relaxed text-text-muted">
+                {pane.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            )}
           </article>
         </div>
 
@@ -212,7 +249,11 @@ export function DetailPanel({ job, filters }: { job: Job; filters: FilterState }
             <button
               type="button"
               disabled
-              className="flex-1 rounded bg-ink py-3 text-sm font-bold text-text-on-ink disabled:cursor-not-allowed disabled:opacity-60"
+              // Full ink even while disabled. `disabled:opacity-60` used to grey
+              // it, which is the conventional inert look — dropped by request, so
+              // the caption below is now the ONLY thing saying this does nothing.
+              // Keep that caption, and keep `disabled`: the cursor still refuses.
+              className="flex-1 rounded bg-ink py-3 text-sm font-bold text-text-on-ink disabled:cursor-not-allowed"
             >
               Apply now
             </button>

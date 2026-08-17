@@ -1,8 +1,15 @@
 import type { ReactNode } from 'react'
 import {
+  Anchor,
+  Atom,
+  BarChart3,
   Brain,
   Cloud,
+  Compass,
+  Database,
   Layers,
+  Lock,
+  Server,
   Shield,
   Waves,
   Wallet,
@@ -47,6 +54,13 @@ const MARKS: Record<string, ReactNode> = {
   brain: <Brain aria-hidden className="size-6" strokeWidth={1.5} />,
   cloud: <Cloud aria-hidden className="size-6" strokeWidth={1.5} />,
   shield: <Shield aria-hidden className="size-6" strokeWidth={1.5} />,
+  server: <Server aria-hidden className="size-6" strokeWidth={1.5} />,
+  database: <Database aria-hidden className="size-6" strokeWidth={1.5} />,
+  lock: <Lock aria-hidden className="size-6" strokeWidth={1.5} />,
+  anchor: <Anchor aria-hidden className="size-6" strokeWidth={1.5} />,
+  atom: <Atom aria-hidden className="size-6" strokeWidth={1.5} />,
+  chart: <BarChart3 aria-hidden className="size-6" strokeWidth={1.5} />,
+  compass: <Compass aria-hidden className="size-6" strokeWidth={1.5} />,
 }
 
 /**

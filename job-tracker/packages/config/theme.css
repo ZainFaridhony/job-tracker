@@ -33,6 +33,19 @@
   --color-outline: #8a8a8a;
   --color-outline-subtle: #e4e4e4;
 
+  /* The three steps of an ordinal scale, best to worst. For quantities with a
+     real direction only - a change rising or falling, a score banding from
+     Excellent to Critical. `warning` is the middle step of a scale, not a
+     general caution colour. Weight-matched so no band shouts louder than its
+     neighbours; tokens.test.ts asserts both spreads. */
+  --color-success: #146c2e;
+  --color-success-surface: #c6f0d2;
+  --color-text-on-success-surface: #00522a;
+
+  --color-warning: #8a5000;
+  --color-warning-surface: #ffe2bc;
+  --color-text-on-warning-surface: #6b3d00;
+
   --color-error: #ba1a1a;
   --color-error-surface: #ffdad6;
   --color-text-on-error-surface: #93000a;

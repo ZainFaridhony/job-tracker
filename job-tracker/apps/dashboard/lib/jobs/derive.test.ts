@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  COMPETITION_BANDS,
+  COMPETITION_FILTER_LABEL,
   COMPETITION_SEGMENTS,
   competitionFilled,
   competitionFor,
@@ -8,6 +10,25 @@ import {
   ringDash,
   verdictFor,
 } from './derive'
+
+describe('COMPETITION_BANDS', () => {
+  it('lists every band competitionFor can return, in ascending order', () => {
+    // The filter sidebar renders this vocabulary. A band missing from it would
+    // be an unreachable filter; a band in it that competitionFor never returns
+    // would be a checkbox that can only ever empty the list.
+    expect(COMPETITION_BANDS).toEqual(['low', 'medium', 'high'])
+    const reachable = new Set([0, 25, 100].map(competitionFor))
+    for (const band of COMPETITION_BANDS) expect(reachable, band).toContain(band)
+  })
+
+  it('labels a checkbox with the bare band, not the meter caption', () => {
+    // COMPETITION_LABEL is written for the meter, where it reads "Low
+    // competition" beside an applicant count. Reusing it under a section
+    // already titled "Applicant competition" gives "Low competition
+    // competition", so the filter gets its own shorter labels.
+    expect(COMPETITION_FILTER_LABEL).toEqual({ low: 'Low', medium: 'Medium', high: 'High' })
+  })
+})
 
 describe('competitionFor', () => {
   it('reproduces the label the reference prints for each of its six cards', () => {

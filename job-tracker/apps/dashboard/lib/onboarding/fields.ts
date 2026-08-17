@@ -88,6 +88,30 @@ export function readPreferenceFields(form: FormData): Read<TablesUpdate<'profile
 }
 
 /**
+ * The one boolean column, read from a checkbox.
+ *
+ * Called from `readAllProfileFields` and deliberately NOT from
+ * `readPreferenceFields`, even though the control sits among the preferences on
+ * screen. `readPreferenceFields` is shared with the wizard's step 3, which has no
+ * such toggle — so reading it there would make every step-3 save write `false`
+ * and switch the preference back off for anyone who later re-ran the wizard. This
+ * is the mirror of the rule that keeps settings from writing `onboarding_step`:
+ * each form writes only what it actually asked about.
+ *
+ * An unticked checkbox posts NOTHING, which is indistinguishable from a form that
+ * does not carry the field — and the settings screen needs to tell those apart in
+ * one direction: it must be able to turn the preference OFF. So that form pairs
+ * the checkbox with a hidden `off` and the browser posts both, in document order.
+ *
+ * `getAll().at(-1)`, not `get()`, because `get()` returns the FIRST value — always
+ * the hidden `off` — so a ticked box would never save. Reading the last one lets
+ * the checkbox override the hidden default exactly when it is present.
+ */
+function readAutofill(form: FormData): boolean {
+  return form.getAll('autofill_job_filters').map(String).at(-1) === 'on'
+}
+
+/**
  * Both halves at once, for the settings screen, which shows one form where the
  * wizard shows two steps.
  *
@@ -105,5 +129,14 @@ export function readAllProfileFields(form: FormData): Read<TablesUpdate<'profile
   if (!preferences.ok) return preferences
   const profile = readProfileFields(form)
   if (!profile.ok) return profile
-  return { ok: true, values: { ...preferences.values, ...profile.values } }
+  return {
+    ok: true,
+    values: {
+      ...preferences.values,
+      ...profile.values,
+      // Settings-only: this screen owns the toggle and the wizard has no such
+      // control. See `readAutofill` for why it is not read one level down.
+      autofill_job_filters: readAutofill(form),
+    },
+  }
 }
