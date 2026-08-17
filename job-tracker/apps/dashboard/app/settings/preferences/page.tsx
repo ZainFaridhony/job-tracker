@@ -12,14 +12,30 @@ export default async function PreferencesPage() {
 
   const supabase = await createServerSupabase()
   const { data: claims } = await supabase.auth.getClaims()
-  const { data: row } = await supabase
+  const userId = String(claims?.claims.sub ?? '')
+
+  // One select again, now that 20260817132659_autofill_job_filters is applied.
+  // It was briefly split in two: an unapplied migration made the whole row null,
+  // and the redirect below read that as "no profile" and bounced a valid session
+  // to /sign-in, where the proxy forwarded it to /dashboard. What survives from
+  // that is the `error` branch under this, not the split — a failed query and an
+  // absent row need opposite responses and must not share one.
+  const { data: row, error } = await supabase
     .from('profiles')
     .select(
-      'career_goal, target_roles, skills, years_experience, work_location, salary_period, salary_target, salary_currency',
+      'career_goal, target_roles, skills, years_experience, work_location, salary_period, salary_target, salary_currency, autofill_job_filters',
     )
-    .eq('id', String(claims?.claims.sub ?? ''))
+    .eq('id', userId)
     .maybeSingle()
 
+  // Distinguished, because they need opposite responses. A failed query is a
+  // server fault and must be visible; no row for a valid session means the signup
+  // trigger never fired, which the sign-in redirect is the right answer to.
+  if (error) {
+    // Codes and column names only — never a row's contents (P3).
+    console.warn(`[settings] profile read failed for user ${userId}: ${error.code} ${error.message}`)
+    throw new Error('Could not load your preferences.')
+  }
   if (!row) redirect('/sign-in')
 
   const profile: Profile = {
@@ -41,7 +57,10 @@ export default async function PreferencesPage() {
       title="Preferences"
       description="What we know about the work you are looking for. Change any of it, any time."
     >
-      <PreferencesForm profile={profile} />
+      {/* A separate prop rather than a field on `Profile`, which is the shape the
+          onboarding wizard shares — the wizard has no toggle, and widening that
+          type would imply it does. */}
+      <PreferencesForm profile={profile} autofill={row.autofill_job_filters} />
     </SettingsShell>
   )
 }

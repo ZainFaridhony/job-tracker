@@ -51,6 +51,7 @@ export type Database = {
       profiles: {
         Row: {
           accepted_terms_at: string | null
+          autofill_job_filters: boolean
           career_goal: string | null
           created_at: string
           cv_prefilled_at: string | null
@@ -69,6 +70,7 @@ export type Database = {
         }
         Insert: {
           accepted_terms_at?: string | null
+          autofill_job_filters?: boolean
           career_goal?: string | null
           created_at?: string
           cv_prefilled_at?: string | null
@@ -87,6 +89,7 @@ export type Database = {
         }
         Update: {
           accepted_terms_at?: string | null
+          autofill_job_filters?: boolean
           career_goal?: string | null
           created_at?: string
           cv_prefilled_at?: string | null

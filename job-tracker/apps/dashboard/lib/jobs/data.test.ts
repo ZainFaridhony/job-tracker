@@ -12,6 +12,7 @@ import {
   WORK_MODES,
   jobById,
 } from './data'
+import { COMPETITION_BANDS, competitionFor } from './derive'
 
 describe('the corpus', () => {
   it('gives every listing a distinct id', () => {
@@ -88,6 +89,15 @@ describe('the corpus', () => {
         `POSTED_WINDOWS: ${w.label}`,
       ).toBe(true)
     }
+  })
+
+  it('gives every competition band at least one listing, so it is not a permanent dead end', () => {
+    // Competition is DERIVED from `applicants`, not stored, so it needs the
+    // POSTED_WINDOWS shape of check rather than the exact-match table above:
+    // some listing must actually fall in each band. On this corpus each band
+    // holds two — 12/24 low, 42/67 medium, 156/186 high.
+    const held = new Set(JOBS.map((j) => competitionFor(j.applicants)))
+    for (const band of COMPETITION_BANDS) expect(held, band).toContain(band)
   })
 
   it('finds a listing by id and nothing by a bad one', () => {

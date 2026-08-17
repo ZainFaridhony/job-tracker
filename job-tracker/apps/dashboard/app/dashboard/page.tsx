@@ -7,6 +7,8 @@ import { DeltaTooltip } from '@/components/dashboard/delta-tooltip'
 import { Eyebrow, Panel, StatCard } from '@/components/dashboard/primitives'
 import { ResumeHealth } from '@/components/dashboard/resume-health'
 import { viewer } from '@/lib/dashboard/viewer'
+import { navPreferences } from '@/lib/jobs/profile'
+import { seedJobsHref } from '@/lib/jobs/seed'
 import {
   APPLIED,
   daysSince,
@@ -23,7 +25,9 @@ export const metadata = { title: 'Dashboard · Job Tracker AI' }
 
 export default async function DashboardPage() {
   // The one real value on the page. Everything else is in lib/dashboard/dummy.
-  const { display, greeting, email } = await viewer()
+  // Concurrent, not serial: the seeded Jobs link needs the preference row and
+  // there is no reason for it to wait on the identity query.
+  const [{ display, greeting, email }, prefs] = await Promise.all([viewer(), navPreferences()])
   const days = daysSince(HUNT_STARTED_ON, new Date())
   const started = new Date(`${HUNT_STARTED_ON}T00:00:00Z`).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -35,7 +39,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-canvas">
-      <DashboardNav current="/dashboard" name={display} email={email} />
+      <DashboardNav
+        current="/dashboard"
+        name={display}
+        email={email}
+        jobsHref={seedJobsHref(prefs)}
+      />
 
       {/* 1600px, from the reference's own Tailwind config. DESIGN.md says 1200px
           in prose and 1600px in the token block; the built markup uses 1600, so

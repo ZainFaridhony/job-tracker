@@ -11,15 +11,19 @@ import {
   POSTED_WINDOWS,
   SENIORITY_LEVELS,
   SIZE_LABEL,
-  SKILL_FACETS,
   SOURCE_LABEL,
   TYPE_LABEL,
 } from '@/lib/jobs/data'
+import { COMPETITION_BANDS, COMPETITION_FILTER_LABEL } from '@/lib/jobs/derive'
 import type { FilterState } from '@/lib/jobs/filters'
 import { stickySidebar } from '@/lib/jobs/layout'
+import type { SeedPreferences } from '@/lib/jobs/seed'
+import type { SkillGroup } from '@/lib/jobs/skills'
 import { SALARY_CURRENCIES } from '@/lib/onboarding/steps'
 import { inCurrency, SALARY_PERIODS } from '@/lib/jobs/salary'
+import { AutofillToggle } from './autofill-toggle'
 import { FILTER_FORM_ID } from './search-header'
+import { SkillsFacet } from './skills-facet'
 
 /**
  * The filter sidebar, driven by the facet vocabularies rather than hand-written
@@ -97,12 +101,21 @@ function CheckboxFacet<T extends string>({
 export function FilterSidebar({
   filters,
   hasBar,
+  skillGroups,
+  prefs,
 }: {
   filters: FilterState
   /** Whether the sticky filter bar is on screen. It only renders when a filter
    *  is active, and the sidebar parks 64px lower when it is — passed down
    *  rather than recomputed here so both components read one decision. */
   hasBar: boolean
+  /** Built on the server by `skillFacetGroups`, because it needs the CV and this
+   *  is a presentational component. Passed in rather than fetched here so the
+   *  sidebar stays renderable from a test or a story with no request context. */
+  skillGroups: readonly SkillGroup[]
+  /** The saved preferences behind the autofill toggle, read once by the page for
+   *  the same reason — this component fetches nothing. */
+  prefs: SeedPreferences
 }) {
   return (
     <Panel className={`flex flex-col overflow-y-auto p-5 ${stickySidebar(hasBar)}`} delay={140}>
@@ -110,7 +123,13 @@ export function FilterSidebar({
         Filters
       </h2>
 
-      <Section title="Job information" open>
+      {/* Above the facets and outside any <details>, because it is the one control
+          here that decides what the others start as — and because a switch hidden
+          behind a disclosure triangle is a switch nobody finds. Its own POST form,
+          not part of `job-filters`: see AutofillToggle. */}
+      <AutofillToggle prefs={prefs} filters={filters} />
+
+      <Section title="Job Information" open>
         <Select
           label="Job function"
           name="fn"
@@ -129,7 +148,7 @@ export function FilterSidebar({
         />
       </Section>
 
-      <Section title="Employment type">
+      <Section title="Employment Type">
         <CheckboxFacet
           name="type"
           values={EMPLOYMENT_TYPES}
@@ -138,7 +157,7 @@ export function FilterSidebar({
         />
       </Section>
 
-      <Section title="Experience level">
+      <Section title="Experience Level">
         <CheckboxFacet
           name="level"
           values={SENIORITY_LEVELS}
@@ -180,7 +199,13 @@ export function FilterSidebar({
             reinterprets whatever is already in the box — defensible only if the
             control says so. */}
         <AmountField
+          // Kept as the accessible name, hidden on screen: the section title says
+          // Salary, the control above says how salaries are read, and the hint
+          // below says which currency. "Minimum" is still the one word carrying
+          // that this is a FLOOR — the chip reads "$160k+" for the same reason —
+          // so it stays available to a screen reader rather than being deleted.
           label="Minimum, per year"
+          labelHidden
           name="salaryMin"
           currencyName="currency"
           form={FILTER_FORM_ID}
@@ -203,20 +228,33 @@ export function FilterSidebar({
         />
       </Section>
 
-      <Section title={`Skills (${SKILL_FACETS.length})`}>
-        {/* Ticking two asks for a listing wanting both — see applyFilters. */}
-        <div className="grid grid-cols-1 gap-2">
-          {SKILL_FACETS.map((s) => (
-            <Checkbox
-              key={s}
-              name="skill"
-              value={s}
-              form={FILTER_FORM_ID}
-              defaultChecked={filters.skills.includes(s)}
-              label={s}
-            />
-          ))}
-        </div>
+      {/* No count in the title, matching every other section here. It would also
+          have been a moving number — the offered set shrinks as other filters
+          narrow the corpus — so a reader would watch "Skills (16)" become
+          "Skills (11)" and reasonably wonder which of their skills just vanished.
+
+          Skipped entirely when nothing survives the other filters: an empty
+          Skills section is a disclosure triangle over nothing. */}
+      {skillGroups.length > 0 && (
+        <Section title="Skills">
+          {/* Ticking two asks for a listing wanting both — see applyFilters. */}
+          <SkillsFacet groups={skillGroups} formId={FILTER_FORM_ID} />
+        </Section>
+      )}
+
+      <Section title="Applicant Competition">
+        {/* Derived from the applicant count with thresholds at 25 and 100 — see
+            derive.ts, where those numbers are asserted against the six
+            label/count pairs the reference states. Checkboxes rather than
+            radios, unlike Posted: the windows there nest, so two ticked would be
+            contradictory, whereas a listing sits in exactly one band and "Low or
+            Medium" is a coherent request. */}
+        <CheckboxFacet
+          name="comp"
+          values={COMPETITION_BANDS}
+          labels={COMPETITION_FILTER_LABEL}
+          selected={filters.competition}
+        />
       </Section>
 
       <Section title="Posted">

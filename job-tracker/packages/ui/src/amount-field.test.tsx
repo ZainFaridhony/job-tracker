@@ -28,6 +28,18 @@ describe('AmountField', () => {
     expect(screen.getByLabelText('Target salary')).toHaveAttribute('name', 'salary_target')
   })
 
+  it('keeps the accessible name when the label is visually hidden', () => {
+    // The jobs sidebar drops the visible "Minimum, per year" line — the section
+    // is already titled Salary and the hint underneath explains the currency. The
+    // NAME cannot go with it: a bare number field beside a labelled currency
+    // select gives a screen reader nothing to announce, and WCAG 3.3.2 requires
+    // the label. So it becomes sr-only rather than being removed.
+    setup({ labelHidden: true })
+    const input = screen.getByLabelText('Target salary')
+    expect(input).toHaveAttribute('name', 'salary_target')
+    expect(document.querySelector('label')).toHaveClass('sr-only')
+  })
+
   it('submits the currency as its own field, not inside the amount', () => {
     setup()
     const select = screen.getByLabelText('Currency')

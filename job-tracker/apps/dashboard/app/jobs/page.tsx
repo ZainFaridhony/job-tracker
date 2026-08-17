@@ -6,6 +6,9 @@ import { JobList } from '@/components/jobs/job-list'
 import { SearchHeader } from '@/components/jobs/search-header'
 import { JOBS, jobById } from '@/lib/jobs/data'
 import { activeCount, applyFilters, parseFilters, type RawParams } from '@/lib/jobs/filters'
+import { cvSkills, navPreferences } from '@/lib/jobs/profile'
+import { skillFacetGroups } from '@/lib/jobs/skills'
+import { readTab } from '@/lib/jobs/tabs'
 import { PAGE_SHELL } from '@/lib/jobs/layout'
 import { viewer } from '@/lib/dashboard/viewer'
 
@@ -16,9 +19,25 @@ export default async function JobsPage({
 }: {
   searchParams: Promise<RawParams>
 }) {
-  const [{ display, email }, raw] = await Promise.all([viewer(), searchParams])
+  // Three awaits in one gate rather than in sequence: `cvSkills()` is a second
+  // round trip to Postgres and there is no reason for it to wait on `viewer()`,
+  // which is why the CV read is its own function instead of a column bolted onto
+  // the identity query three other routes also run.
+  const [{ display, email }, skills, prefs, raw] = await Promise.all([
+    viewer(),
+    cvSkills(),
+    // For the sidebar's autofill toggle, which mirrors the settings checkbox.
+    navPreferences(),
+    searchParams,
+  ])
   const filters = parseFilters(raw)
   const results = applyFilters(JOBS, filters)
+
+  // Grouped by whether the CV already records each skill, and counted with the
+  // Skills facet excluded from its own count so each figure says what ticking
+  // would do. Built from JOBS rather than from `results` for that same reason —
+  // see facetCounts.
+  const skillGroups = skillFacetGroups(JOBS, filters, skills)
 
   // An unknown ?job= is ignored rather than 404ing the whole screen: the id is
   // one parameter among a dozen, and losing the list because one of them went
@@ -48,13 +67,18 @@ export default async function JobsPage({
         <FilterBar filters={filters} />
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
-          <FilterSidebar filters={filters} hasBar={hasBar} />
+          <FilterSidebar
+            filters={filters}
+            hasBar={hasBar}
+            skillGroups={skillGroups}
+            prefs={prefs}
+          />
           <div className="lg:col-span-3">
             <JobList jobs={results} filters={filters} selectedId={selected?.id} />
           </div>
         </div>
 
-        {selected && <DetailPanel job={selected} filters={filters} />}
+        {selected && <DetailPanel job={selected} filters={filters} tab={readTab(raw)} />}
       </main>
     </div>
   )

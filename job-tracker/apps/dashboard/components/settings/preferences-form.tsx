@@ -13,6 +13,7 @@ import {
   type Choice,
 } from '@job-tracker/ui'
 import { GraduationCapIcon, MedalIcon, RepeatIcon, TrendingUpIcon } from 'lucide-react'
+import { SwitchField } from '@/components/switch'
 import { TagPicker } from '@/components/tag-picker'
 import {
   savePreferencesSettingsAction,
@@ -87,7 +88,16 @@ function SaveButton({ savedAt }: { savedAt?: number }) {
   )
 }
 
-export function PreferencesForm({ profile }: { profile: Profile }) {
+export function PreferencesForm({
+  profile,
+  autofill,
+}: {
+  profile: Profile
+  /** `profiles.autofill_job_filters`. A separate prop rather than a field on
+   *  `Profile`, which is the shape the onboarding wizard shares — the wizard has
+   *  no such toggle, and widening that type would imply it does. */
+  autofill: boolean
+}) {
   const [state, action] = useActionState<SettingsState, FormData>(
     savePreferencesSettingsAction,
     {},
@@ -170,6 +180,27 @@ export function PreferencesForm({ profile }: { profile: Profile }) {
       </div>
 
       <Divider />
+
+      {/* The one control here that is not a profile fact but a choice about how
+          the app behaves. It sits last, after the divider, so it reads as a
+          setting rather than as another thing the CV told us.
+
+          A hidden input carries the unchecked case: an unticked checkbox posts
+          NOTHING, so without it `readPreferenceFields` could not tell "turned
+          off" from "this form does not have the field" — and the toggle would be
+          impossible to switch back off. The browser posts both in order and the
+          server reads the LAST value, which is how the checkbox wins when it is
+          ticked. Same reason it needs no JavaScript to work. */}
+      <div className="flex flex-col gap-2">
+        <input type="hidden" name="autofill_job_filters" value="off" />
+        <SwitchField
+          name="autofill_job_filters"
+          value="on"
+          defaultChecked={autofill}
+          label="Open Jobs with my preferences already applied"
+          hint="The Jobs tab will start filtered to your work location and target salary. You can clear any of it from the filter bar, or switch this from the Jobs sidebar."
+        />
+      </div>
 
       <SaveButton savedAt={state.savedAt} />
     </form>

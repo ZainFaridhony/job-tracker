@@ -12,6 +12,7 @@ import {
   toQuery,
   withoutChip,
 } from './filters'
+import { toBaseCurrency } from './salary'
 
 describe('parseFilters', () => {
   it('reads nothing out of nothing', () => {
@@ -40,6 +41,11 @@ describe('parseFilters', () => {
     expect(parseFilters({ salaryMin: 'abc' }).salaryMin).toBeNull()
   })
 
+  it('accepts only a competition band it actually offers', () => {
+    expect(parseFilters({ comp: 'high' }).competition).toEqual(['high'])
+    expect(parseFilters({ comp: ['low', 'nuclear'] }).competition).toEqual(['low'])
+  })
+
   it('accepts only a posted window it actually offers', () => {
     expect(parseFilters({ posted: '168' }).postedWithinHours).toBe(168)
     expect(parseFilters({ posted: '3' }).postedWithinHours).toBeNull()
@@ -56,13 +62,33 @@ describe('applyFilters', () => {
   })
 
   it('matches the query against title, company and skills', () => {
-    expect(applyFilters(JOBS, parseFilters({ q: 'designer' })).length).toBeGreaterThan(0)
-    expect(applyFilters(JOBS, parseFilters({ q: 'ACME' })).map((j) => j.company)).toEqual([
-      'Acme Corp',
-    ])
-    expect(applyFilters(JOBS, parseFilters({ q: 'terraform' })).map((j) => j.company)).toEqual([
-      'CloudScale',
-    ])
+    // Asserted as a property rather than as an exact list of companies. Naming
+    // the matches makes this a test about the corpus, which then fails whenever a
+    // listing is added — a change that cannot break the matching rule. The rule
+    // is that every survivor contains the query in one of the three fields, and
+    // that a real term finds something.
+    for (const [term, field] of [
+      ['designer', 'title'],
+      ['acme', 'company'],
+      ['terraform', 'skills'],
+    ] as const) {
+      const kept = applyFilters(JOBS, parseFilters({ q: term }))
+      expect(kept.length, `${term} (${field})`).toBeGreaterThan(0)
+      expect(kept.length, `${term} (${field})`).toBeLessThan(JOBS.length)
+      for (const j of kept) {
+        const haystack = `${j.title} ${j.company} ${j.skills.join(' ')}`.toLowerCase()
+        expect(haystack, `${j.id} matched ${term}`).toContain(term)
+      }
+    }
+  })
+
+  it('matches nothing outside those three fields', () => {
+    // The city is deliberately not searched by `q` — that is what `location` is
+    // for — so a query naming only a city must not narrow on the wrong field.
+    const kept = applyFilters(JOBS, parseFilters({ q: 'Atlanta' }))
+    for (const j of kept) {
+      expect(`${j.title} ${j.company} ${j.skills.join(' ')}`.toLowerCase()).toContain('atlanta')
+    }
   })
 
   it('treats several values of one facet as OR', () => {
@@ -83,8 +109,34 @@ describe('applyFilters', () => {
 
   it('reads a salary floor against the top of the band, not the bottom', () => {
     // "pays at least 200k" should keep a 165k-205k listing: the band reaches it.
-    const kept = applyFilters(JOBS, parseFilters({ salaryMin: '200000' }))
-    expect(kept.map((j) => j.company).sort()).toEqual(['CloudScale', 'GlobalPay', 'Nexus AI', 'SecureNet'])
+    // Stated as the rule rather than as a list of companies, so adding a listing
+    // cannot fail a test about which end of the range is compared.
+    const floor = 200_000
+    const kept = applyFilters(JOBS, parseFilters({ salaryMin: String(floor) }))
+
+    expect(kept.length).toBeGreaterThan(0)
+    expect(kept.length).toBeLessThan(JOBS.length)
+    for (const j of kept) expect(j.salary.max, j.id).toBeGreaterThanOrEqual(floor)
+
+    // The whole point: at least one survivor starts BELOW the floor, which is
+    // only possible if `max` is what gets compared. Comparing `min` would drop it.
+    expect(kept.some((j) => j.salary.min < floor)).toBe(true)
+  })
+
+  it('filters by competition band, derived from the applicant count', () => {
+    const low = applyFilters(JOBS, parseFilters({ comp: 'low' }))
+    expect(low.length).toBeGreaterThan(0)
+    expect(low.every((j) => j.applicants < 25)).toBe(true)
+  })
+
+  it('treats several competition bands as alternatives, not as an intersection', () => {
+    // Unlike skills — where ticking two asks for a listing wanting both — a
+    // listing has exactly ONE band, so AND semantics here could only ever
+    // return nothing.
+    const either = applyFilters(JOBS, parseFilters({ comp: ['low', 'high'] }))
+    const low = applyFilters(JOBS, parseFilters({ comp: 'low' }))
+    const high = applyFilters(JOBS, parseFilters({ comp: 'high' }))
+    expect(either).toHaveLength(low.length + high.length)
   })
 
   it('filters by how long ago a listing was posted', () => {
@@ -128,12 +180,25 @@ describe('activeChips', () => {
     const chips = activeChips(parseFilters({ mode: ['remote', 'hybrid'], type: 'full-time' }))
     expect(new Set(chips.map((c) => c.key)).size).toBe(chips.length)
   })
+
+  it('names a competition chip for the applicant load it means', () => {
+    // "High" alone would be a chip that does not say what is high.
+    expect(activeChips(parseFilters({ comp: 'high' }))[0]).toEqual({
+      key: 'comp:high',
+      label: 'High competition',
+    })
+  })
 })
 
 describe('withoutChip', () => {
   it('removes one value of a facet and leaves its siblings', () => {
     const f = parseFilters({ mode: ['remote', 'hybrid'] })
     expect(withoutChip(f, 'mode:remote').modes).toEqual(['hybrid'])
+  })
+
+  it('removes one competition band and leaves its siblings', () => {
+    const f = parseFilters({ comp: ['low', 'high'] })
+    expect(withoutChip(f, 'comp:low').competition).toEqual(['high'])
   })
 
   it('clears a single-valued facet', () => {
@@ -167,6 +232,7 @@ describe('toQuery', () => {
       size: 'startup',
       source: 'wellfound',
       skill: ['React', 'TypeScript'],
+      comp: ['low', 'medium'],
       salaryMin: '160000',
       posted: '168',
       period: 'monthly',
@@ -226,19 +292,27 @@ describe('currency', () => {
 
 describe('applyFilters interprets the salary floor in the chosen currency', () => {
   it('converts the threshold into the corpus base before comparing', () => {
-    // 3.2B IDR is about $202.5k, so it keeps the three listings whose band
-    // reaches that and drops GlobalPay's $200k, which does not.
-    const kept = applyFilters(JOBS, parseFilters({ salaryMin: '3200000000', currency: 'IDR' }))
-    expect(kept.map((j) => j.company).sort()).toEqual(['CloudScale', 'Nexus AI', 'SecureNet'])
+    // 3.2B IDR is about $202.5k. Asserted against the converted figure rather
+    // than a list of companies: the corpus is placeholder data and the rate table
+    // is invented, so both are free to change without the rule changing.
+    const typed = 3_200_000_000
+    const kept = applyFilters(JOBS, parseFilters({ salaryMin: String(typed), currency: 'IDR' }))
+    const floor = toBaseCurrency(typed, 'IDR')
+
+    expect(kept.length).toBeGreaterThan(0)
+    expect(kept.length).toBeLessThan(JOBS.length)
+    for (const j of kept) expect(j.salary.max, j.id).toBeGreaterThanOrEqual(floor)
+    // Not converting would compare 3.2 BILLION against a USD band and keep nothing.
+    expect(floor).toBeLessThan(typed)
   })
 
   it('reads the same number differently under a different currency', () => {
     // This is the consequence of the input being denominated in the displayed
     // currency, and why the field's label names it. 3.2 billion dollars is a
-    // floor nothing reaches.
+    // floor nothing reaches; 3.2 billion rupiah is an ordinary salary.
     const raw = { salaryMin: '3200000000' }
     expect(applyFilters(JOBS, parseFilters({ ...raw, currency: 'USD' }))).toEqual([])
-    expect(applyFilters(JOBS, parseFilters({ ...raw, currency: 'IDR' })).length).toBe(3)
+    expect(applyFilters(JOBS, parseFilters({ ...raw, currency: 'IDR' })).length).toBeGreaterThan(0)
   })
 
   it('agrees with itself when one floor is expressed two ways', () => {

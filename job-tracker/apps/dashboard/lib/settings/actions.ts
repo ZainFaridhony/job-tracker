@@ -38,7 +38,10 @@ export async function savePreferencesSettingsAction(
 
   // The provider's message is not shown: it can name columns and constraints,
   // which is detail for a log rather than for the person who mistyped a salary.
-  if (error) return { error: 'Could not save your preferences. Try again.' }
+  if (error) {
+    console.warn(`[settings] save failed for user ${userId}: ${error.code} ${error.message}`)
+    return { error: 'Could not save your preferences. Try again.' }
+  }
 
   // So a reload — or the dashboard, which reads the same row — shows the new
   // values rather than the render that was cached before the update.
