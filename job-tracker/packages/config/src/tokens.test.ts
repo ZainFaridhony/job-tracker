@@ -5,6 +5,23 @@ import { contrastRatio } from './contrast'
 const BACKGROUNDS = ['surface', 'canvas', 'surface-subtle'] as const
 const TEXT = ['text', 'text-muted', 'text-subtle'] as const
 
+/** The three steps of an ordinal scale, best to worst. Each has a text token
+ *  and a `-surface` / `text-on-*-surface` container pair. */
+const ORDINAL = ['success', 'warning', 'error'] as const
+
+type Measured = readonly (readonly [string, number])[]
+
+/** Kept as name/ratio pairs rather than two parallel arrays so the failure
+ *  message names the offending token without an index TS cannot prove is in
+ *  range — `noUncheckedIndexedAccess` is on. */
+const spreadOf = (m: Measured): number => {
+  const rs = m.map(([, r]) => r)
+  return Math.max(...rs) - Math.min(...rs)
+}
+
+const describe_ = (m: Measured): string =>
+  m.map(([name, r]) => `${name} ${r.toFixed(2)}`).join(', ')
+
 describe('TOKENS', () => {
   it('is uppercase 6-digit hex throughout', () => {
     for (const [name, value] of Object.entries(TOKENS)) {
@@ -53,6 +70,50 @@ describe('accessibility floors', () => {
     expect(
       contrastRatio(TOKENS['text-on-error-surface'], TOKENS['error-surface']),
     ).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('clears AA for every ordinal token on every background', () => {
+    for (const bg of BACKGROUNDS) {
+      for (const fg of ORDINAL) {
+        const r = contrastRatio(TOKENS[fg], TOKENS[bg])
+        expect(r, `${fg} on ${bg} = ${r.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+  })
+
+  it('clears AA for every tinted container and the text sat on it', () => {
+    for (const band of ORDINAL) {
+      const r = contrastRatio(TOKENS[`text-on-${band}-surface`], TOKENS[`${band}-surface`])
+      expect(r, `text-on-${band}-surface on ${band}-surface = ${r.toFixed(2)}`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  // An ordinal scale is only readable if its steps carry equal weight. Pinned in
+  // both directions because the obvious greens and ambers are all far lighter
+  // than this red: swap one in and "Critical" shouts while "Excellent" whispers,
+  // which no other assertion here would catch. Same reason a rise and a fall on
+  // `Delta` must weigh the same.
+  it('weights the ordinal tokens alike, so no band shouts louder than another', () => {
+    for (const bg of BACKGROUNDS) {
+      const measured = ORDINAL.map((t) => [t, contrastRatio(TOKENS[t], TOKENS[bg])] as const)
+      expect(spreadOf(measured), `on ${bg}: ${describe_(measured)}`).toBeLessThan(0.5)
+    }
+  })
+
+  it('weights the tinted containers alike for the same reason', () => {
+    const measured = ORDINAL.map(
+      (b) =>
+        [b, contrastRatio(TOKENS[`text-on-${b}-surface`], TOKENS[`${b}-surface`])] as const,
+    )
+    expect(spreadOf(measured), describe_(measured)).toBeLessThan(0.5)
+  })
+
+  // Not decoration: the emphasised optimisation tip is an ink fill with a
+  // focusable ⓘ inside it, so the focus ring is drawn against ink rather than
+  // against one of the three light backgrounds the check above covers.
+  it('clears WCAG 1.4.11 for a focus ring drawn on an ink fill', () => {
+    const r = contrastRatio(TOKENS['outline'], TOKENS['ink'])
+    expect(r, `outline on ink = ${r.toFixed(2)}`).toBeGreaterThanOrEqual(3)
   })
 
   it('exempts outline-subtle, which is decorative only', () => {

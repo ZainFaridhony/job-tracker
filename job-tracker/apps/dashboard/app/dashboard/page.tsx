@@ -3,18 +3,19 @@ import { DashboardNav } from '@/components/dashboard/nav'
 import { WeeklyActivity } from '@/components/dashboard/activity'
 import { PerformanceSummary } from '@/components/dashboard/performance'
 import { ConversionPipeline } from '@/components/dashboard/pipeline'
-import { Delta, Eyebrow, Panel, StatCard } from '@/components/dashboard/primitives'
+import { DeltaTooltip } from '@/components/dashboard/delta-tooltip'
+import { Eyebrow, Panel, StatCard } from '@/components/dashboard/primitives'
 import { ResumeHealth } from '@/components/dashboard/resume-health'
 import { viewer } from '@/lib/dashboard/viewer'
 import {
   APPLIED,
   daysSince,
-  delta,
   HUNT_STARTED_ON,
   SCHEDULED,
   THIS_WEEK,
   TOP_MATCH,
   UNDER_REVIEW,
+  weekOverWeek,
   WEEKS,
 } from '@/lib/dashboard/dummy'
 
@@ -67,7 +68,7 @@ export default async function DashboardPage() {
                 <span className="text-2xl font-bold tracking-tight text-text">
                   {THIS_WEEK} applications
                 </span>
-                <Delta value={delta(THIS_WEEK, lastWeek)} />
+                <DeltaTooltip trend={weekOverWeek(THIS_WEEK, lastWeek)} noun="application" />
               </div>
             </Panel>
           </div>

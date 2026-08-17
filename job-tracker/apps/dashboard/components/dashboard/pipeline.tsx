@@ -18,7 +18,11 @@ import { InsightCard, Panel, PanelTitle } from './primitives'
 const TONE: Record<PipelineTone, string> = {
   neutral: 'bg-surface-subtle text-text',
   current: 'border-2 border-ink bg-surface text-text',
-  negative: 'bg-error-surface text-on-error-surface',
+  // `text-text-on-error-surface`, not `text-on-error-surface`. The token is
+  // named `text-on-error-surface`, so the utility that reads it carries the
+  // `text-` prefix twice. The short form compiles to no CSS at all rather than
+  // to an error, and this chip silently inherited near-black for months.
+  negative: 'bg-error-surface text-text-on-error-surface',
   win: 'bg-ink text-text-on-ink',
 }
 

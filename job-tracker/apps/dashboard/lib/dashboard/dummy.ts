@@ -69,10 +69,60 @@ export function rate(part: number, whole: number): string {
   return `${((part / whole) * 100).toFixed(1)}%`
 }
 
-/** Whole percent, for deltas where a decimal is noise. */
-export function delta(current: number, previous: number): number {
-  if (previous === 0) return 0
+/**
+ * Whole percent, for deltas where a decimal is noise.
+ *
+ * `null` rather than 0 when there is nothing to compare against: 0 renders as
+ * "no change", which is a different claim from "no previous week". The two were
+ * indistinguishable while the badge showed only a percentage; once the tooltip
+ * prints the baseline beside it, "+0%" above "Last week: 0 applications" is
+ * visibly false.
+ */
+export function delta(current: number, previous: number): number | null {
+  if (previous === 0) return null
   return Math.round(((current - previous) / previous) * 100)
+}
+
+export type TrendDirection = 'up' | 'down' | 'flat' | 'none'
+
+export type Trend = {
+  current: number
+  previous: number
+  /** Signed count, because "+3 more" is the plain-language form of "+20%". */
+  difference: number
+  percent: number | null
+  direction: TrendDirection
+}
+
+/**
+ * A period against the one before it, with the working kept.
+ *
+ * Returns the counts and the difference as well as the percentage, because the
+ * tooltip shows how the figure was reached — and a tooltip that recomputed its
+ * own numbers would be the second literal this module exists to avoid.
+ */
+export function weekOverWeek(current: number, previous: number): Trend {
+  const percent = delta(current, previous)
+  const difference = current - previous
+  const direction: TrendDirection =
+    percent === null ? 'none' : difference > 0 ? 'up' : difference < 0 ? 'down' : 'flat'
+  return { current, previous, difference, percent, direction }
+}
+
+/**
+ * The change as a sentence.
+ *
+ * Here rather than in the component because this workspace's vitest is node-only
+ * and scoped to lib/**, and pluralisation is exactly the kind of thing that ships
+ * broken. It does two jobs at once: the tooltip's closing line, and the badge's
+ * accessible name — "+20%, button" is a percentage, not a name.
+ */
+export function trendSummary(trend: Trend, noun: string): string {
+  if (trend.direction === 'none') return 'no previous week to compare'
+  if (trend.difference === 0) return 'the same as last week'
+  const size = Math.abs(trend.difference)
+  const word = trend.difference > 0 ? 'more' : 'fewer'
+  return `${size} ${word} ${size === 1 ? noun : `${noun}s`} than last week`
 }
 
 export type Week = { label: string; range: string; count: number }
@@ -165,10 +215,35 @@ export type HealthRow = {
   action?: string
 }
 
+export type HealthTone = 'success' | 'warning' | 'error'
+
+export type HealthBand = { label: string; tone: HealthTone }
+
+/**
+ * The score, banded.
+ *
+ * Derived rather than stored: `score: 91` and `verdict: 'Excellent'` used to sit
+ * beside each other as two independent literals, so editing the score left the
+ * chip asserting the opposite — the same class of contradiction this module's
+ * header is about. There is now one source, and the word and the colour come out
+ * of it together, which is what stops a green chip ever reading "Critical".
+ *
+ * The thresholds are a judgement call: the reference states exactly one pairing
+ * (91 is Excellent) and no rule. 80/50 treats this as a quality audit — a solid
+ * resume reads green, amber means real gaps worth fixing, red means something is
+ * structurally wrong. Deliberately NOT the 90/80/70 of `lib/jobs/derive.ts`,
+ * which bands how well a person matches a job rather than how complete their CV
+ * is, and which has four steps to this scale's three.
+ */
+export function healthBand(score: number): HealthBand {
+  if (score >= 80) return { label: 'Excellent', tone: 'success' }
+  if (score >= 50) return { label: 'Warning', tone: 'warning' }
+  return { label: 'Critical', tone: 'error' }
+}
+
 export const RESUME_HEALTH = {
   score: 91,
   outOf: 100,
-  verdict: 'Excellent',
   rows: [
     { label: 'Keyword coverage', hint: 'Relevant keywords detected', value: '34 / 48' },
     {
@@ -180,9 +255,34 @@ export const RESUME_HEALTH = {
     { label: 'Missing skills', hint: 'High-impact gaps', value: '5 skills', tone: 'negative' },
     { label: 'Completeness', hint: 'Structural audit', value: '6 / 6' },
   ] satisfies HealthRow[],
+  /**
+   * Each tip states WHY, and the reason is required rather than optional —
+   * `dummy.test.ts` fails a tip that ships without one. A percentage with no
+   * stated reason asks the reader to take a recommendation on authority, and
+   * this one can cost them a month of learning a new tool.
+   *
+   * THESE REASONS ARE INVENTED, and they are the most misleading thing on this
+   * panel. The figures elsewhere here are fabricated too, but a statistic is
+   * something a reader notes and a recommendation is something they act on —
+   * "68% of the roles you've matched" reads as a computation over their own
+   * history, and PRD NG2 means nothing computes it. When this screen gets a
+   * real disclosure, these tooltips are the first thing that belongs behind it.
+   */
   tips: [
-    { label: 'Add Kubernetes', gain: '+7%', emphasis: true },
-    { label: 'Improve project metrics', gain: '+12%', emphasis: false },
+    {
+      label: 'Add Kubernetes',
+      gain: '+7%',
+      emphasis: true,
+      reason:
+        'Kubernetes appears in 68% of the senior backend roles you have matched above 85%, and it is the most common requirement missing from your resume. Listing it also reads as current: container orchestration is now assumed rather than specialist.',
+    },
+    {
+      label: 'Improve project metrics',
+      gain: '+12%',
+      emphasis: false,
+      reason:
+        'Six of your project bullets say what you built but not what changed. A quantified outcome — latency cut, cost saved, users served — is the strongest signal recruiters screen for, and the cheapest gap here to close.',
+    },
   ],
 }
 

@@ -4,12 +4,16 @@ import {
   barHeights,
   daysSince,
   delta,
+  healthBand,
   INTERVIEWED,
   PERFORMANCE_SUMMARY,
   PIPELINE,
   rate,
+  RESUME_HEALTH,
   SCHEDULED,
   THIS_WEEK,
+  trendSummary,
+  weekOverWeek,
   WEEKS,
 } from './dummy'
 
@@ -52,8 +56,126 @@ describe('delta', () => {
     expect(delta(9, 28)).toBe(-68)
   })
 
-  it('returns zero rather than Infinity when there is no baseline', () => {
-    expect(delta(5, 0)).toBe(0)
+  it('reports no percentage at all when there is no baseline to compare against', () => {
+    // It used to return 0, which reads as "no change" rather than "no previous
+    // week". Invisible until the tooltip started printing the baseline beside
+    // it, at which point "+0%" over "Last week: 0 applications" is a lie.
+    expect(delta(5, 0)).toBeNull()
+  })
+})
+
+describe('weekOverWeek', () => {
+  it('carries both counts and the signed difference, not only the percentage', () => {
+    // The tooltip shows the working, so the working has to be in the value.
+    expect(weekOverWeek(18, 15)).toEqual({
+      current: 18,
+      previous: 15,
+      difference: 3,
+      percent: 20,
+      direction: 'up',
+    })
+  })
+
+  it('reads a fall as down, with the difference and percentage both negative', () => {
+    expect(weekOverWeek(9, 28)).toEqual({
+      current: 9,
+      previous: 28,
+      difference: -19,
+      percent: -68,
+      direction: 'down',
+    })
+  })
+
+  it('calls an unchanged week flat rather than a rise of nothing', () => {
+    expect(weekOverWeek(15, 15)).toMatchObject({ direction: 'flat', percent: 0, difference: 0 })
+  })
+
+  it('has no direction and no percentage when there is no previous week', () => {
+    expect(weekOverWeek(5, 0)).toMatchObject({ direction: 'none', percent: null, difference: 5 })
+  })
+
+  it('agrees with delta, so the badge and the tooltip cannot print different numbers', () => {
+    expect(weekOverWeek(18, 15).percent).toBe(delta(18, 15))
+    expect(weekOverWeek(9, 28).percent).toBe(delta(9, 28))
+  })
+
+  it('summarises the change in words, so the badge has an accessible name', () => {
+    expect(trendSummary(weekOverWeek(18, 15), 'application')).toBe(
+      '3 more applications than last week',
+    )
+    expect(trendSummary(weekOverWeek(9, 28), 'application')).toBe(
+      '19 fewer applications than last week',
+    )
+  })
+
+  it('says one application, not one applications', () => {
+    expect(trendSummary(weekOverWeek(16, 15), 'application')).toBe(
+      '1 more application than last week',
+    )
+  })
+
+  it('does not dress an unchanged week up as a change', () => {
+    expect(trendSummary(weekOverWeek(15, 15), 'application')).toBe('the same as last week')
+  })
+
+  it('says plainly that there is nothing to compare against', () => {
+    expect(trendSummary(weekOverWeek(5, 0), 'application')).toBe('no previous week to compare')
+  })
+
+  it('compares this week against the last completed week of the chart', () => {
+    // The reference prints 22%, a tooltip reading "vs 14 apps last week", and a
+    // chart whose final bar is 15 — three figures, no two of which agree. The
+    // baseline is the chart's own last week, so the card and the chart cannot
+    // drift apart the way those did.
+    const trend = weekOverWeek(THIS_WEEK, WEEKS.at(-1)!.count)
+    expect(trend.previous).toBe(WEEKS.at(-1)!.count)
+    expect(trend.percent).toBe(20)
+  })
+})
+
+describe('healthBand', () => {
+  it('calls the shipped 91 excellent, as the reference chip does', () => {
+    expect(healthBand(RESUME_HEALTH.score)).toEqual({ label: 'Excellent', tone: 'success' })
+  })
+
+  it('bands on 80 and 50, inclusive at the top of each band', () => {
+    // The boundaries are the whole risk in a banding function, so both sides of
+    // both of them are pinned rather than sampled from the middle.
+    expect(healthBand(80).label).toBe('Excellent')
+    expect(healthBand(79).label).toBe('Warning')
+    expect(healthBand(50).label).toBe('Warning')
+    expect(healthBand(49).label).toBe('Critical')
+  })
+
+  it('holds at the ends of the scale', () => {
+    expect(healthBand(100).tone).toBe('success')
+    expect(healthBand(0).tone).toBe('error')
+  })
+
+  it('gives each band its own tone, so the colour cannot drift from the word', () => {
+    expect(healthBand(91).tone).toBe('success')
+    expect(healthBand(60).tone).toBe('warning')
+    expect(healthBand(20).tone).toBe('error')
+  })
+
+  it('gives every optimisation tip a reason, since each one asks for real work', () => {
+    // The tip is a recommendation the reader may act on for weeks. A tip with a
+    // percentage and no stated reason is the screen asserting authority it has
+    // not shown its working for, so the reason is required rather than optional.
+    for (const tip of RESUME_HEALTH.tips) {
+      expect(tip.reason, tip.label).toBeTruthy()
+    }
+  })
+
+  it('keys the tips by a label that is actually unique', () => {
+    const labels = RESUME_HEALTH.tips.map((t) => t.label)
+    expect(new Set(labels).size).toBe(labels.length)
+  })
+
+  it('is the only source of the verdict, which is no longer stored beside the score', () => {
+    // `score: 91` and `verdict: 'Excellent'` used to be two independent
+    // literals; editing one left the other asserting the opposite.
+    expect(RESUME_HEALTH).not.toHaveProperty('verdict')
   })
 })
 
